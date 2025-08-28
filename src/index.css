@@ -1,3 +1,10 @@
+/* Geist Sans via jsDelivr (Fontsource) */
+@import url("https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.2.5/300.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.2.5/400.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.2.5/500.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.2.5/600.min.css");
+@import url("https://cdn.jsdelivr.net/npm/@fontsource/geist-sans@5.2.5/700.min.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,6 +14,9 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  :root {
+    --font-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -136,6 +146,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
   }
 }

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
+import { AIInsights } from "@/components/AIInsights";
 import { LineAverageDelayData } from "@/services/api";
 
 interface LineAverageDelayChartProps {
@@ -119,9 +120,7 @@ export const LineAverageDelayChart = ({ data }: LineAverageDelayChartProps) => {
           {data.ai_insights && (
             <div className="mt-4 p-3 bg-muted rounded-md">
               <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-              <div className="text-sm text-muted-foreground whitespace-pre-line">
-                {data.ai_insights}
-              </div>
+              <AIInsights text={data.ai_insights} />
             </div>
           )}
         </CardContent>

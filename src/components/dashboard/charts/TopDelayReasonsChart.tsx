@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from "recharts";
 import { TopDelayReasonsData } from "@/services/api";
 
 interface TopDelayReasonsChartProps {
@@ -24,7 +24,7 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
     );
   }
 
-  // Transform data for chart
+  // Transform data for chart (keep incoming order)
   const chartData = data.top_delay_reasons.map((item, index) => ({
     reason: item.REASON,
     count: item.count,
@@ -33,6 +33,10 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
   }));
 
   const totalIncidents = chartData.reduce((sum, item) => sum + item.count, 0);
+  const maxCount = Math.max(...chartData.map((d) => d.count));
+
+  const formatCount = (v: number) =>
+    v >= 1000 ? `${Math.round(v / 100) / 10}k` : `${v}`;
 
   return (
     <Card>
@@ -43,19 +47,25 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} layout="horizontal" margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+        <ResponsiveContainer width="100%" height={440}>
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            margin={{ top: 16, right: 24, left: 8, bottom: 16 }}
+          >
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
               type="number"
               className="text-xs fill-muted-foreground"
+              domain={[0, Math.ceil(maxCount * 1.1)]}
+              tickFormatter={formatCount}
               label={{ value: 'Number of Incidents', position: 'insideBottom', offset: -5 }}
             />
             <YAxis
               type="category"
               dataKey="reason"
               className="text-xs fill-muted-foreground"
-              width={150}
+              width={240}
             />
             <Tooltip
               contentStyle={{
@@ -64,7 +74,7 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
                 borderRadius: '6px'
               }}
               formatter={(value: number, name: string) => {
-                if (name === 'count') return [value, 'Incidents'];
+                if (name === 'count') return [value.toLocaleString(), 'Incidents'];
                 if (name === 'sharePercent') return [`${value}%`, 'Share'];
                 return [value, name];
               }}
@@ -73,7 +83,10 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
             <Bar
               dataKey="count"
               radius={[0, 2, 2, 0]}
-            />
+              fill="hsl(var(--chart-7))"
+            >
+              <LabelList dataKey="count" position="right" formatter={(v: number) => v.toLocaleString()} />
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
         <div className="mt-4 text-sm text-muted-foreground">

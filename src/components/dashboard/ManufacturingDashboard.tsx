@@ -102,12 +102,12 @@ export const ManufacturingDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-7xl p-6">
+      <div className="container mx-auto max-w-6xl p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-4xl font-bold">Manufacturing Analytics Dashboard</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-3xl font-semibold tracking-tight">Manufacturing Analytics Dashboard</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
               Real-time insights into batch processing and production efficiency
             </p>
           </div>
@@ -115,10 +115,10 @@ export const ManufacturingDashboard = () => {
         </div>
 
         {/* Controls */}
-        <div className="mb-8 flex justify-end gap-4">
+        <div className="mb-6 flex justify-end gap-3">
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 shadow-sm transition-colors"
           >
             Refresh Data
           </button>
@@ -146,7 +146,7 @@ export const ManufacturingDashboard = () => {
         ) : null}
 
         {/* Manufacturing Analytics Charts - Ordered by API Endpoints */}
-        <div className="space-y-8">
+        <div className="space-y-10">
           {/* 1. Processing Days Histogram */}
           <div className="space-y-4">
             {(() => {
