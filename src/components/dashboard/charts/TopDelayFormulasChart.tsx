@@ -88,7 +88,7 @@ export const TopDelayFormulasChart = ({ data }: TopDelayFormulasChartProps) => {
             <Bar
               yAxisId="left"
               dataKey="delayRate"
-              fill="hsl(var(--destructive))"
+              fill="hsl(217.2193, 91.2195%, 59.8039%)"
               name="Delay Rate %"
               radius={[2, 2, 0, 0]}
             />

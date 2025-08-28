@@ -26,12 +26,16 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
   const totalBatches = chartData.reduce((sum, item) => sum + item.total_batches, 0);
   const totalDelayed = chartData.reduce((sum, item) => sum + item.delayed_batches, 0);
 
+  const insightType: 'negative' | 'warning' | 'positive' | 'info' =
+    avgDelayRate > 25 ? 'negative' : avgDelayRate > 15 ? 'warning' : 'positive';
+  const insightImpact: 'high' | 'medium' | 'low' = avgDelayRate > 25 ? 'high' : 'medium';
+
   const insights = [
     {
       title: "Line Performance Analysis",
       description: `Overall delay rate is ${((totalDelayed / totalBatches) * 100).toFixed(1)}% across all production lines. Average delay rate per line is ${avgDelayRate.toFixed(1)}%.`,
-      type: avgDelayRate > 25 ? 'negative' : avgDelayRate > 15 ? 'warning' : 'positive' as const,
-      impact: avgDelayRate > 25 ? 'high' : 'medium' as const,
+      type: insightType,
+      impact: insightImpact,
       metrics: [
         { label: "Total Batches", value: totalBatches },
         { label: "Total Delayed", value: totalDelayed },
@@ -101,24 +105,24 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
                 yAxisId="left"
                 dataKey="on_time_batches" 
                 stackId="batches"
-                fill="hsl(var(--chart-2))" 
+                fill="hsla(217.2193, 91.2195%, 59.8039%, 0.35)" 
                 name="On Time Batches"
               />
               <Bar 
                 yAxisId="left"
                 dataKey="delayed_batches" 
                 stackId="batches"
-                fill="hsl(var(--destructive))" 
+                fill="hsl(217.2193, 91.2195%, 59.8039%)" 
                 name="Delayed Batches"
               />
               <Line 
                 yAxisId="right"
                 type="monotone" 
                 dataKey="delay_rate" 
-                stroke="hsl(var(--chart-4))"
+                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
                 strokeWidth={3}
                 name="Delay Rate %"
-                dot={{ fill: 'hsl(var(--chart-4))', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2, r: 4 }}
               />
             </ComposedChart>
           </ResponsiveContainer>

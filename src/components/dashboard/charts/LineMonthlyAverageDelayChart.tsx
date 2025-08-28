@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
 import { LineMonthlyAverageDelayData } from "@/services/api";
 import { AIInsights } from "@/components/AIInsights";
+import { CustomLineChart } from "@/components/charts";
+import { ChartConfig } from "@/components/ui/chart";
 
 interface LineMonthlyAverageDelayChartProps {
   data: LineMonthlyAverageDelayData;
@@ -44,7 +45,22 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
   });
 
   const uniqueLines = Object.keys(data.lines).map(key => parseInt(key)).sort((a, b) => a - b);
-  const colors = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+  const colors = [
+    'hsl(217.2193, 91.2195%, 59.8039%)',
+    'hsl(217.2193, 91.2195%, 66%)',
+    'hsl(217.2193, 91.2195%, 52%)',
+    'hsl(217.2193, 91.2195%, 74%)',
+    'hsl(217.2193, 91.2195%, 45%)',
+  ];
+
+  // Create chart configuration for shadcn
+  const chartConfig = uniqueLines.reduce((config, line, index) => {
+    config[`line_${line}`] = {
+      label: `Line ${line}`,
+      color: colors[index % colors.length],
+    };
+    return config;
+  }, {} as Record<string, any>) satisfies ChartConfig;
 
   const insights = [
     {
@@ -55,7 +71,7 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
       metrics: [
         { label: "Lines Tracked", value: uniqueLines.length },
         { label: "Months Analyzed", value: chartData.length },
-        { label: "Data Points", value: data.length }
+        { label: "Data Points", value: chartData.length * uniqueLines.length }
       ],
       recommendations: [
         "Identify lines with consistently high delays across months",
@@ -71,9 +87,9 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Line Monthly Average Delay</CardTitle>
+            <CardTitle>Monthly Average Delay Trend</CardTitle>
             <CardDescription>
-              Monthly delay trends by production line (threshold: {data.threshold} days)
+              Average processing time per month with 2-day threshold
             </CardDescription>
           </div>
           <Button
@@ -86,49 +102,36 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
             Insights
           </Button>
         </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis 
-                dataKey="month" 
-                className="text-xs fill-muted-foreground"
-              />
-              <YAxis 
-                className="text-xs fill-muted-foreground"
-                label={{ value: 'Average Delay (Days)', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '6px'
-                }}
-                formatter={(value: number, name: string) => [
-                  `${value?.toFixed(1)} days`,
-                  name.replace('line_', 'Line ')
-                ]}
-              />
-              <ReferenceLine
-                y={data.threshold}
-                stroke="hsl(var(--destructive))"
-                strokeDasharray="5 5"
-                label={{ value: "Delay Threshold", position: "top" }}
-              />
-              <Legend />
-              {uniqueLines.map((line, index) => (
-                <Line
-                  key={line}
-                  type="monotone"
-                  dataKey={`line_${line}`}
-                  stroke={colors[index % colors.length]}
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                  name={`Line ${line}`}
-                />
+        <CardContent className="p-6">
+          <div className="mb-4">
+            <CustomLineChart
+              data={chartData}
+              config={chartConfig}
+              dataKeys={uniqueLines.slice(0, 6).map(line => `line_${line}`)}
+              xAxisKey="month"
+              className="h-[350px] w-full"
+              showLegend={false}
+              referenceLine={{ y: data.threshold, label: "2-Day Threshold" }}
+            />
+          </div>
+          {uniqueLines.length > 0 && (
+            <div className="flex flex-wrap gap-4 justify-center mt-4 pt-4 border-t">
+              {uniqueLines.slice(0, 6).map((line, index) => (
+                <div key={line} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: colors[index % colors.length] }}
+                  />
+                  <span className="text-sm text-muted-foreground">Line {line}</span>
+                </div>
               ))}
-            </LineChart>
-          </ResponsiveContainer>
+              {uniqueLines.length > 6 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">+{uniqueLines.length - 6} more lines</span>
+                </div>
+              )}
+            </div>
+          )}
           {data.ai_insights && (
             <div className="mt-4 p-3 bg-muted rounded-md">
               <h4 className="font-semibold text-sm mb-2">AI Insights</h4>

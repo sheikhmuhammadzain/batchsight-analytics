@@ -49,12 +49,16 @@ export const DelayedBatchesByLineChart = ({ data }: DelayedBatchesByLineChartPro
   const avgDelayRate = chartDataWithRates.reduce((sum, item) => sum + item.delay_rate, 0) / chartDataWithRates.length;
   const worstLine = chartDataWithRates.reduce((worst, item) => item.delay_rate > worst.delay_rate ? item : worst, chartDataWithRates[0]);
 
+  const insightType: 'negative' | 'warning' | 'positive' | 'info' =
+    avgDelayRate > 30 ? 'negative' : avgDelayRate > 20 ? 'warning' : 'positive';
+  const insightImpact: 'high' | 'medium' | 'low' = avgDelayRate > 30 ? 'high' : 'medium';
+
   const insights = [
     {
       title: "Line Delay Performance",
       description: `Average delay rate across lines is ${avgDelayRate.toFixed(1)}%. Line ${worstLine?.line} has the highest delay rate at ${worstLine?.delay_rate.toFixed(1)}%.`,
-      type: avgDelayRate > 30 ? 'negative' : avgDelayRate > 20 ? 'warning' : 'positive' as const,
-      impact: avgDelayRate > 30 ? 'high' : 'medium' as const,
+      type: insightType,
+      impact: insightImpact,
       metrics: [
         { label: "Average Delay Rate", value: `${avgDelayRate.toFixed(1)}%` },
         { label: "Worst Performing Line", value: `Line ${worstLine?.line}` },
@@ -126,7 +130,7 @@ export const DelayedBatchesByLineChart = ({ data }: DelayedBatchesByLineChartPro
                 yAxisId="left"
                 dataKey="on_time_batches"
                 stackId="batches"
-                fill="hsl(var(--chart-2))"
+                fill="hsla(217.2193, 91.2195%, 59.8039%, 0.35)"
                 name="On Time Batches"
                 radius={[0, 0, 0, 0]}
               />
@@ -134,7 +138,7 @@ export const DelayedBatchesByLineChart = ({ data }: DelayedBatchesByLineChartPro
                 yAxisId="left"
                 dataKey="delayed_batches"
                 stackId="batches"
-                fill="hsl(var(--destructive))"
+                fill="hsl(217.2193, 91.2195%, 59.8039%)"
                 name="Delayed Batches"
                 radius={[2, 2, 0, 0]}
               />
@@ -142,10 +146,10 @@ export const DelayedBatchesByLineChart = ({ data }: DelayedBatchesByLineChartPro
                 yAxisId="right"
                 type="monotone"
                 dataKey="delay_rate"
-                stroke="hsl(var(--chart-4))"
+                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
                 strokeWidth={3}
                 name="Delay Rate %"
-                dot={{ fill: 'hsl(var(--chart-4))', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2, r: 4 }}
               />
             </ComposedChart>
           </ResponsiveContainer>

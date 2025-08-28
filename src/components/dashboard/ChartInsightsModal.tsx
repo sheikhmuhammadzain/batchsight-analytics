@@ -1,6 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { CustomBarChart, CustomLineChart } from "@/components/charts";
+import { ChartConfig } from "@/components/ui/chart";
 
 export interface ChartInsight {
   title: string;
@@ -16,9 +19,59 @@ interface ChartInsightsModalProps {
   onClose: () => void;
   chartTitle: string;
   insights: ChartInsight[];
+  chartData?: Array<Record<string, any>>;
+  chartType?: 'bar' | 'line' | 'area' | 'pie';
 }
 
-export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights }: ChartInsightsModalProps) => {
+export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights, chartData, chartType = 'bar' }: ChartInsightsModalProps) => {
+  // Sample chart data and configuration for demonstration
+  const sampleChartData = chartData || [
+    { period: "Q1", actual: 186, target: 200, efficiency: 93 },
+    { period: "Q2", actual: 305, target: 280, efficiency: 109 },
+    { period: "Q3", actual: 237, target: 250, efficiency: 95 },
+    { period: "Q4", actual: 273, target: 260, efficiency: 105 },
+  ];
+
+  const chartConfig = {
+    actual: {
+      label: "Actual Performance",
+      color: "hsl(var(--chart-1))",
+    },
+    target: {
+      label: "Target Performance", 
+      color: "hsl(var(--chart-2))",
+    },
+    efficiency: {
+      label: "Efficiency %",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig;
+
+  const renderChart = () => {
+    switch (chartType) {
+      case 'line':
+        return (
+          <CustomLineChart
+            data={sampleChartData}
+            config={chartConfig}
+            dataKeys={["actual", "target"]}
+            xAxisKey="period"
+            className="h-[250px]"
+          />
+        );
+      case 'bar':
+      default:
+        return (
+          <CustomBarChart
+            data={sampleChartData}
+            config={chartConfig}
+            dataKeys={["actual", "target"]}
+            xAxisKey="period"
+            className="h-[250px]"
+          />
+        );
+    }
+  };
   const getInsightIcon = (type: ChartInsight['type']) => {
     switch (type) {
       case 'positive':
@@ -56,13 +109,26 @@ export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights }: Ch
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{chartTitle} - Insights</DialogTitle>
           <DialogDescription>
             Detailed analysis and recommendations based on your manufacturing data
           </DialogDescription>
         </DialogHeader>
+
+        {/* Chart Visualization */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Performance Visualization</CardTitle>
+            <CardDescription>
+              Interactive chart showing key metrics and trends
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {renderChart()}
+          </CardContent>
+        </Card>
 
         <div className="space-y-6">
           {insights.map((insight, index) => (

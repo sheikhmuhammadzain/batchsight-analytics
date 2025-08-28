@@ -67,15 +67,15 @@ export const ProcessingDaysHistogram = ({ data }: ProcessingDaysHistogramProps) 
                 `Range: ${props.payload.range}`
               ]}
             />
-                          <ReferenceLine
-                x={data.threshold}
-                stroke="hsl(var(--destructive))"
-                strokeDasharray="5 5"
-                label={{ value: "Delay Threshold", position: "top" }}
-              />
+            <ReferenceLine
+              x={data.threshold}
+              stroke="hsl(217.2193, 91.2195%, 59.8039%)"
+              strokeDasharray="5 5"
+              label={{ value: "Delay Threshold", position: "top" }}
+            />
             <Bar
               dataKey="count"
-              fill="hsl(var(--chart-1))"
+              fill="hsl(217.2193, 91.2195%, 59.8039%)"
               radius={[2, 2, 0, 0]}
             />
           </BarChart>

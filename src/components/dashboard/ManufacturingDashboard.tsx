@@ -13,10 +13,19 @@ import { TopDelayReasonsChart } from "./charts/TopDelayReasonsChart";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useManufacturingData } from "@/hooks/useManufacturingData";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, BarChart3, TrendingUp, Activity } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { CustomBarChart, CustomLineChart, CustomAreaChart } from "@/components/charts";
+import { ChartConfig } from "@/components/ui/chart";
+import { ChartInsightsModal, ChartInsight } from "./ChartInsightsModal";
+import { useState } from "react";
 
 export const ManufacturingDashboard = () => {
   const { toast } = useToast();
+  const [selectedChart, setSelectedChart] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const {
     delayShare,
     monthlyAverageDelay,
@@ -74,6 +83,82 @@ export const ManufacturingDashboard = () => {
     console.warn('Monthly average delay data has unexpected format:', monthlyAverageDelay);
     return null;
   })();
+
+  // Sample data for shadcn charts integration
+  const enhancedMetricsData = [
+    { period: "Q1", efficiency: 85, target: 90, production: 1200 },
+    { period: "Q2", efficiency: 88, target: 90, production: 1350 },
+    { period: "Q3", efficiency: 92, target: 90, production: 1400 },
+    { period: "Q4", efficiency: 94, target: 90, production: 1500 },
+  ];
+
+  const performanceTrendData = [
+    { month: "Jan", actual: 186, planned: 200, efficiency: 93 },
+    { month: "Feb", actual: 305, planned: 280, efficiency: 109 },
+    { month: "Mar", actual: 237, planned: 250, efficiency: 95 },
+    { month: "Apr", actual: 273, planned: 260, efficiency: 105 },
+    { month: "May", actual: 209, planned: 230, efficiency: 91 },
+    { month: "Jun", actual: 214, planned: 220, efficiency: 97 },
+  ];
+
+  const metricsConfig = {
+    efficiency: {
+      label: "Efficiency %",
+      color: "hsl(var(--chart-1))",
+    },
+    target: {
+      label: "Target %",
+      color: "hsl(var(--chart-2))",
+    },
+    production: {
+      label: "Production Units",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig;
+
+  const performanceConfig = {
+    actual: {
+      label: "Actual Output",
+      color: "hsl(var(--chart-1))",
+    },
+    planned: {
+      label: "Planned Output",
+      color: "hsl(var(--chart-2))",
+    },
+    efficiency: {
+      label: "Efficiency %",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig;
+
+  const sampleInsights: ChartInsight[] = [
+    {
+      title: "Production Efficiency Improvement",
+      description: "Manufacturing efficiency has increased by 15% over the last quarter, exceeding target performance.",
+      type: "positive",
+      impact: "high",
+      recommendations: [
+        "Continue current optimization strategies",
+        "Share best practices across all production lines",
+        "Consider expanding successful processes to other facilities"
+      ],
+      metrics: [
+        { label: "Current Efficiency", value: "94.5%", trend: "up" },
+        { label: "Target Efficiency", value: "90%", trend: "stable" },
+        { label: "Improvement", value: "+4.5%", trend: "up" }
+      ]
+    }
+  ];
+
+  const handleChartClick = (chartTitle: string) => {
+    setSelectedChart(chartTitle);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedChart(null);
+  };
 
   if (isLoading) {
     return (
@@ -253,6 +338,15 @@ export const ManufacturingDashboard = () => {
             {topDelayReasons ? <TopDelayReasonsChart data={topDelayReasons} /> : null}
           </div>
         </div>
+
+        {/* Chart Insights Modal */}
+        <ChartInsightsModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          chartTitle={selectedChart || "Chart Analysis"}
+          insights={sampleInsights}
+          chartType="bar"
+        />
       </div>
     </div>
   );

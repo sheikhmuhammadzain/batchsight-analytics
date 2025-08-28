@@ -29,7 +29,7 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
     reason: item.REASON,
     count: item.count,
     sharePercent: item.share_percent,
-    fill: index < 3 ? 'hsl(var(--destructive))' : 'hsl(var(--chart-7))'
+    fill: 'hsl(217.2193, 91.2195%, 59.8039%)'
   }));
 
   const totalIncidents = chartData.reduce((sum, item) => sum + item.count, 0);
@@ -83,7 +83,7 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
             <Bar
               dataKey="count"
               radius={[0, 2, 2, 0]}
-              fill="hsl(var(--chart-7))"
+              fill="hsl(217.2193, 91.2195%, 59.8039%)"
             >
               <LabelList dataKey="count" position="right" formatter={(v: number) => v.toLocaleString()} />
             </Bar>

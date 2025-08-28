@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { useState } from "react";
@@ -7,12 +6,15 @@ import { ChartInsightsModal } from "../ChartInsightsModal";
 import { AIInsights } from "@/components/AIInsights";
 import { useChartInsights } from "@/hooks/useChartInsights";
 import { DelayShareData } from "@/services/api";
+import { CustomPieChart } from "@/components/charts";
+import { ChartConfig } from "@/components/ui/chart";
 
 interface DelayShareChartProps {
   data: DelayShareData;
 }
 
-const COLORS = ['hsl(var(--chart-2))', 'hsl(var(--destructive))'];
+const PRIMARY_BLUE = 'hsl(217.2193, 91.2195%, 59.8039%)';
+const PRIMARY_BLUE_SOFT = 'hsla(217.2193, 91.2195%, 59.8039%, 0.35)';
 
 export const DelayShareChart = ({ data }: DelayShareChartProps) => {
   const [showInsights, setShowInsights] = useState(false);
@@ -34,12 +36,26 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
     );
   }
 
-  // Transform API data into chart format
-  const chartData = data.categories.map((category, index) => ({
-    name: category,
-    value: Math.round((data.percentages[index] || 0) * 10) / 10, // Round to 1 decimal
-    percentage: data.percentages[index] || 0
-  }));
+  // Transform API data into chart format for shadcn pie chart
+  const chartData = data.categories.map((category, index) => {
+    const color = category === 'Delayed' ? PRIMARY_BLUE : PRIMARY_BLUE_SOFT;
+    return {
+      name: category,
+      value: Math.round((data.percentages[index] || 0) * 10) / 10, // Round to 1 decimal
+      fill: color
+    };
+  });
+
+  // Chart configuration for shadcn
+  const chartConfig = data.categories.reduce((config, category, index) => {
+    const key = category.toLowerCase().replace(/\s+/g, '-');
+    const color = category === 'Delayed' ? PRIMARY_BLUE : PRIMARY_BLUE_SOFT;
+    config[key] = {
+      label: category,
+      color,
+    };
+    return config;
+  }, {} as Record<string, any>) satisfies ChartConfig;
 
   // Calculate delay analytics from data
   const delayedIndex = data.categories.indexOf("Delayed");
@@ -54,26 +70,6 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
   };
 
   const { delayShareInsights } = useChartInsights(delayAnalytics);
-
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        className="font-semibold text-sm"
-      >
-        {`${(percentage * 100).toFixed(1)}%`}
-      </text>
-    );
-  };
 
   return (
     <>
@@ -96,36 +92,12 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
           </Button>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomizedLabel}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '6px'
-                }}
-                formatter={(value: number, name: string) => [
-                  `${value}% (${Math.round((value / 100) * 1000)} batches)`,
-                  name
-                ]}
-              />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <CustomPieChart
+            data={chartData}
+            config={chartConfig}
+            className="h-[300px]"
+            showLegend={true}
+          />
           {data.ai_insights && (
             <div className="mt-4 p-3 bg-muted rounded-md">
               <h4 className="font-semibold text-sm mb-2">AI Insights</h4>

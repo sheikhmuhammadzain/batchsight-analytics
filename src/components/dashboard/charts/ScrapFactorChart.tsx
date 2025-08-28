@@ -79,7 +79,7 @@ export const ScrapFactorChart = ({ data }: ScrapFactorChartProps) => {
               />
               <Bar 
                 dataKey="scrapFactor" 
-                fill="hsl(var(--chart-2))"
+                fill="hsl(217.2193, 91.2195%, 59.8039%)"
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>

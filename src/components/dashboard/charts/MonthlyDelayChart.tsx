@@ -99,17 +99,17 @@ export const MonthlyDelayChart = ({ data }: MonthlyDelayChartProps) => {
               />
               <ReferenceLine
                 y={data.threshold}
-                stroke="hsl(var(--destructive))"
+                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
                 strokeDasharray="5 5"
                 label={{ value: "Delay Threshold", position: "top" }}
               />
               <Line
                 type="monotone"
                 dataKey="averageDelay"
-                stroke="hsl(var(--chart-1))"
+                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
                 strokeWidth={3}
-                dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: 'hsl(var(--chart-1))', strokeWidth: 2 }}
+                dot={{ fill: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, stroke: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

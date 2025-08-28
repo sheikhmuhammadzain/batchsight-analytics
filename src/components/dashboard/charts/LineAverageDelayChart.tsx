@@ -106,13 +106,13 @@ export const LineAverageDelayChart = ({ data }: LineAverageDelayChartProps) => {
               />
               <ReferenceLine
                 y={data.threshold}
-                stroke="hsl(var(--destructive))"
+                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
                 strokeDasharray="5 5"
                 label={{ value: "Delay Threshold", position: "top" }}
               />
               <Bar
                 dataKey="average_delay"
-                fill="hsl(var(--chart-2))"
+                fill="hsl(217.2193, 91.2195%, 59.8039%)"
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>
