@@ -1,5 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
+import { useState } from "react";
+import { ChartInsightsModal } from "../ChartInsightsModal";
+import { useChartInsights } from "@/hooks/useChartInsights";
 import { ScrapFactorData } from "@/types/manufacturing";
 
 interface ScrapFactorChartProps {
@@ -7,52 +12,87 @@ interface ScrapFactorChartProps {
 }
 
 export const ScrapFactorChart = ({ data }: ScrapFactorChartProps) => {
-  const chartData = data.map((item, index) => ({
-    ...item,
-    x: index + 1,
-    y: item.scrapFactor
-  }));
+  const [showInsights, setShowInsights] = useState(false);
+  
+  // Calculate scrap analytics from data
+  const scrapAnalytics = {
+    avgScrapFactor: data.reduce((sum, d) => sum + d.scrapFactor, 0) / data.length,
+    scrapByLine: data.map(d => ({
+      line: parseInt(d.line),
+      avgScrap: d.scrapFactor,
+      batchCount: 100 // This would come from actual data
+    }))
+  };
+
+  const { scrapFactorInsights } = useChartInsights(undefined, scrapAnalytics);
+
+  const getBarColor = (scrapFactor: number) => {
+    if (scrapFactor > 0.03) return "hsl(var(--destructive))";
+    if (scrapFactor > 0.025) return "hsl(var(--warning))";
+    return "hsl(var(--chart-2))";
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Line Scrap Factor Analysis</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <ScatterChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              type="category"
-              dataKey="line"
-              className="text-xs fill-muted-foreground"
-              name="Production Line"
-            />
-            <YAxis 
-              type="number"
-              className="text-xs fill-muted-foreground"
-              label={{ value: 'Scrap Factor (%)', angle: -90, position: 'insideLeft' }}
-              name="Scrap Factor"
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '6px'
-              }}
-              formatter={(value: number, name: string, props: any) => [
-                `${value}% (Severity: ${props.payload.severity})`,
-                'Scrap Factor'
-              ]}
-              labelFormatter={(value) => `Line: ${value}`}
-            />
-            <Scatter 
-              dataKey="scrapFactor" 
-              fill="hsl(var(--chart-5))"
-            />
-          </ScatterChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Line Scrap Factor Analysis</CardTitle>
+            <CardDescription>
+              Material waste percentage by production line
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowInsights(true)}
+            className="flex items-center gap-2"
+          >
+            <Info className="h-4 w-4" />
+            Insights
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="line"
+                className="text-xs fill-muted-foreground"
+              />
+              <YAxis 
+                className="text-xs fill-muted-foreground"
+                label={{ value: 'Scrap Factor', angle: -90, position: 'insideLeft' }}
+                tickFormatter={(value) => `${(value * 100).toFixed(1)}%`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '6px'
+                }}
+                formatter={(value: number) => [
+                  `${(value * 100).toFixed(2)}%`,
+                  'Scrap Factor'
+                ]}
+                labelFormatter={(value) => `Line: ${value}`}
+              />
+              <Bar 
+                dataKey="scrapFactor" 
+                fill="hsl(var(--chart-2))"
+                radius={[2, 2, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <ChartInsightsModal
+        isOpen={showInsights}
+        onClose={() => setShowInsights(false)}
+        chartTitle="Scrap Factor Analysis"
+        insights={scrapFactorInsights}
+      />
+    </>
   );
 };

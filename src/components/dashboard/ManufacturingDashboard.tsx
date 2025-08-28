@@ -1,23 +1,16 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { KPICards } from "./KPICards";
-import { FilterControls } from "./FilterControls";
 import { ProcessingDaysHistogram } from "./charts/ProcessingDaysHistogram";
 import { DelayShareChart } from "./charts/DelayShareChart";
 import { MonthlyDelayChart } from "./charts/MonthlyDelayChart";
-import { LineDelayChart } from "./charts/LineDelayChart";
-import { DelayedBatchesChart } from "./charts/DelayedBatchesChart";
-import { StackedBatchesChart } from "./charts/StackedBatchesChart";
+import { LineAverageDelayChart } from "./charts/LineAverageDelayChart";
+import { LineMonthlyAverageDelayChart } from "./charts/LineMonthlyAverageDelayChart";
+import { DelayedBatchesByLineChart } from "./charts/DelayedBatchesByLineChart";
+import { DelayedVsTotalBatchesChart } from "./charts/DelayedVsTotalBatchesChart";
 import { TopDelayFormulasChart } from "./charts/TopDelayFormulasChart";
-import { ScrapFactorChart } from "./charts/ScrapFactorChart";
+import { LineScrapFactorChart } from "./charts/LineScrapFactorChart";
 import { MonthlyDelayRateChart } from "./charts/MonthlyDelayRateChart";
 import { DelayReasonsByLineChart } from "./charts/DelayReasonsByLineChart";
 import { TopDelayReasonsChart } from "./charts/TopDelayReasonsChart";
-import { YieldEfficiencyChart } from "./charts/YieldEfficiencyChart";
-import { PlanVsActualChart } from "./charts/PlanVsActualChart";
-import { ScrapDelayCorrelationChart } from "./charts/ScrapDelayCorrelationChart";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { FilterOptions } from "@/types/manufacturing";
 import { useManufacturingData } from "@/hooks/useManufacturingData";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -25,37 +18,25 @@ import { Loader2 } from "lucide-react";
 export const ManufacturingDashboard = () => {
   const { toast } = useToast();
   const {
-    batchData,
-    delayAnalytics,
-    scrapAnalytics,
-    yieldAnalytics,
-    monthlyTrends,
-    delayReasons,
+    delayShare,
+    monthlyAverageDelay,
+    lineAverageDelay,
+    lineMonthlyAverageDelay,
+    delayedBatchesByLine,
+    delayedVsTotalBatches,
+    topDelayFormulas,
+    lineScrapFactor,
+    monthlyDelayRate,
+    delayReasonsByLine,
+    topDelayReasons,
+    processingDaysHistogram,
     isLoading,
     error,
     refetch
   } = useManufacturingData();
 
-  const [filters, setFilters] = useState<FilterOptions>({
-    lines: Array.from({length: 26}, (_, i) => (i + 1).toString()),
-    dateRange: { from: null, to: null },
-    delayThreshold: 2
-  });
-
-  const handleExport = () => {
-    toast({
-      title: "Export Started",
-      description: "Your dashboard data is being exported to CSV...",
-    });
-    
-    // Simulate export functionality
-    setTimeout(() => {
-      toast({
-        title: "Export Complete",
-        description: "Dashboard data has been exported successfully.",
-      });
-    }, 2000);
-  };
+  // Show internal debug info only in development
+  const isDev = (import.meta as any)?.env?.DEV;
 
   const handleRefresh = async () => {
     toast({
@@ -78,71 +59,21 @@ export const ManufacturingDashboard = () => {
     }
   };
 
-  // Transform API data for charts
-  const processingDaysData = batchData?.map(batch => ({
-    days: batch.processing_days,
-    count: 1
-  })) || [];
+  // Use delay share data directly from API with validation
+  const delayShareData = (() => {
+    if (!delayShare) return null;
+    if (typeof delayShare === 'object' && !Array.isArray(delayShare)) return delayShare;
+    console.warn('Delay share data has unexpected format:', delayShare);
+    return null;
+  })();
 
-  const delayShareData = delayAnalytics ? [
-    { 
-      category: "On Time", 
-      name: "On Time", 
-      value: delayAnalytics.onTimeBatches, 
-      percentage: ((delayAnalytics.onTimeBatches / delayAnalytics.totalBatches) * 100) 
-    },
-    { 
-      category: "Delayed", 
-      name: "Delayed", 
-      value: delayAnalytics.delayedBatches, 
-      percentage: ((delayAnalytics.delayedBatches / delayAnalytics.totalBatches) * 100) 
-    }
-  ] : [];
-
-  const monthlyDelayData = monthlyTrends?.map(trend => ({
-    month: trend.month,
-    averageDelay: trend.avgProcessingDays,
-    avgProcessingDays: trend.avgProcessingDays
-  })) || [];
-
-  const scrapFactorData = scrapAnalytics?.scrapByLine.map(line => ({
-    line: line.line.toString(),
-    scrapFactor: line.avgScrap,
-    avgScrap: line.avgScrap,
-    severity: line.avgScrap > 0.03 ? "high" : line.avgScrap > 0.025 ? "medium" : "low"
-  })) || [];
-
-  const planVsActualData = batchData?.map(batch => ({
-    planned: batch.PLAN_QTY,
-    actual: batch.WIP_QTY,
-    batchId: batch.WIP_BATCH_ID
-  })) || [];
-
-  const yieldDistributionData = yieldAnalytics?.yieldDistribution || [];
-
-  const scrapDelayCorrelationData = batchData ? [
-    {
-      category: "On Time",
-      avgScrapFactor: batchData.filter(b => !b.is_delayed).reduce((sum, b) => sum + b.SCRAP_FACTOR, 0) / batchData.filter(b => !b.is_delayed).length,
-      batchCount: batchData.filter(b => !b.is_delayed).length
-    },
-    {
-      category: "Delayed",
-      avgScrapFactor: batchData.filter(b => b.is_delayed).reduce((sum, b) => sum + b.SCRAP_FACTOR, 0) / batchData.filter(b => b.is_delayed).length,
-      batchCount: batchData.filter(b => b.is_delayed).length
-    }
-  ] : [];
-
-  const kpiData = {
-    totalBatches: delayAnalytics?.totalBatches || 0,
-    delayRate: delayAnalytics?.delayRate || 0,
-    delayedPercentage: delayAnalytics?.delayRate || 0,
-    averageDelay: delayAnalytics?.avgProcessingDays || 0,
-    avgProcessingDays: delayAnalytics?.avgProcessingDays || 0,
-    scrapFactor: scrapAnalytics?.avgScrapFactor || 0,
-    avgScrapFactor: scrapAnalytics?.avgScrapFactor || 0,
-    avgYield: yieldAnalytics?.avgYield || 0
-  };
+  // Use monthly average delay data directly from API with validation
+  const monthlyDelayData = (() => {
+    if (!monthlyAverageDelay) return null;
+    if (typeof monthlyAverageDelay === 'object' && !Array.isArray(monthlyAverageDelay)) return monthlyAverageDelay;
+    console.warn('Monthly average delay data has unexpected format:', monthlyAverageDelay);
+    return null;
+  })();
 
   if (isLoading) {
     return (
@@ -171,7 +102,7 @@ export const ManufacturingDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto max-w-7xl p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -183,74 +114,145 @@ export const ManufacturingDashboard = () => {
           <ThemeToggle />
         </div>
 
-        {/* KPI Cards */}
-        <div className="mb-8">
-          <KPICards data={kpiData} />
+        {/* Controls */}
+        <div className="mb-8 flex justify-end gap-4">
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Refresh Data
+          </button>
         </div>
 
-        {/* Filter Controls */}
-        <div className="mb-8">
-          <FilterControls
-            filters={filters}
-            onFiltersChange={setFilters}
-            onExport={handleExport}
-            onRefresh={handleRefresh}
-          />
+        {/* Debug Information (dev only) */}
+        {isDev ? (
+          <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <h3 className="text-lg font-semibold mb-2">Debug Information</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <strong>Processing Days Histogram:</strong> {processingDaysHistogram ? 'Available' : 'Not Available'}
+              </div>
+              <div>
+                <strong>Delay Share:</strong> {delayShareData ? 'Available' : 'Not Available'}
+              </div>
+              <div>
+                <strong>Monthly Delay:</strong> {monthlyDelayData ? 'Available' : 'Not Available'}
+              </div>
+              <div>
+                <strong>Loading:</strong> {isLoading ? 'Yes' : 'No'}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Manufacturing Analytics Charts - Ordered by API Endpoints */}
+        <div className="space-y-8">
+          {/* 1. Processing Days Histogram */}
+          <div className="space-y-4">
+            {(() => {
+              try {
+                if (processingDaysHistogram) {
+                  return <ProcessingDaysHistogram data={processingDaysHistogram} />;
+                } else {
+                  return (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
+                      <p className="text-gray-600">Processing Days Histogram data not available</p>
+                    </div>
+                  );
+                }
+              } catch (error) {
+                console.error('Error rendering ProcessingDaysHistogram:', error);
+                return (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-600">Error rendering Processing Days Histogram chart</p>
+                    <p className="text-red-500 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                  </div>
+                );
+              }
+            })()}
+          </div>
+
+          {/* 2. Delay Share */}
+          <div className="space-y-4">
+            {(() => {
+              try {
+                if (delayShareData) {
+                  return <DelayShareChart data={delayShareData} />;
+                } else {
+                  return (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
+                      <p className="text-gray-600">Delay Share data not available</p>
+                    </div>
+                  );
+                }
+              } catch (error) {
+                console.error('Error rendering DelayShareChart:', error);
+                return (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+                    <p className="text-red-600">Error rendering Delay Share chart</p>
+                    <p className="text-red-500 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                  </div>
+                );
+              }
+            })()}
+          </div>
+
+          {/* 3. Monthly Average Delay */}
+          <div className="space-y-4">
+            {monthlyDelayData ? (
+              <MonthlyDelayChart data={monthlyDelayData} />
+            ) : (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
+                <p className="text-gray-600">Monthly Average Delay data not available</p>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Line Average Delay */}
+          <div className="space-y-4">
+            {lineAverageDelay ? <LineAverageDelayChart data={lineAverageDelay} /> : null}
+          </div>
+
+          {/* 5. Line Monthly Average Delay */}
+          <div className="space-y-4">
+            {lineMonthlyAverageDelay ? <LineMonthlyAverageDelayChart data={lineMonthlyAverageDelay} /> : null}
+          </div>
+
+          {/* 6. Delayed Batches by Line */}
+          <div className="space-y-4">
+            {delayedBatchesByLine ? <DelayedBatchesByLineChart data={delayedBatchesByLine} /> : null}
+          </div>
+
+          {/* 7. Delayed vs Total Batches */}
+          <div className="space-y-4">
+            {delayedVsTotalBatches ? <DelayedVsTotalBatchesChart data={delayedVsTotalBatches} /> : null}
+          </div>
+
+          {/* 8. Top Delay Formulas */}
+          <div className="space-y-4">
+            {topDelayFormulas ? <TopDelayFormulasChart data={topDelayFormulas} /> : null}
+          </div>
+
+          {/* 9. Line Scrap Factor */}
+          <div className="space-y-4">
+            {lineScrapFactor ? <LineScrapFactorChart data={lineScrapFactor} /> : null}
+          </div>
+
+          {/* 10. Monthly Delay Rate */}
+          <div className="space-y-4">
+            {monthlyDelayRate ? <MonthlyDelayRateChart data={monthlyDelayRate} /> : null}
+          </div>
+
+          {/* 11. Delay Reasons by Line */}
+          <div className="space-y-4">
+            {delayReasonsByLine ? <DelayReasonsByLineChart data={delayReasonsByLine} /> : null}
+          </div>
+
+          {/* 12. Top Delay Reasons */}
+          <div className="space-y-4">
+            {topDelayReasons ? <TopDelayReasonsChart data={topDelayReasons} /> : null}
+          </div>
         </div>
-
-        {/* Charts Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="delays">Delay Analysis</TabsTrigger>
-            <TabsTrigger value="production">Production Lines</TabsTrigger>
-            <TabsTrigger value="quality">Quality & Scrap</TabsTrigger>
-            <TabsTrigger value="yield">Yield Analysis</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <DelayShareChart data={delayShareData} />
-              <MonthlyDelayChart data={monthlyDelayData} />
-              <ScrapFactorChart data={scrapFactorData} />
-              <ScrapDelayCorrelationChart data={scrapDelayCorrelationData} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="delays" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <MonthlyDelayChart data={monthlyDelayData} />
-              <ScrapDelayCorrelationChart data={scrapDelayCorrelationData} />
-              {delayReasons && delayReasons.length > 0 && (
-                <TopDelayReasonsChart data={delayReasons.map(r => ({ reason: r.reason, count: r.count }))} />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="production" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ScrapFactorChart data={scrapFactorData} />
-              <MonthlyDelayChart data={monthlyDelayData} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="quality" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ScrapFactorChart data={scrapFactorData} />
-              <ScrapDelayCorrelationChart data={scrapDelayCorrelationData} />
-              {delayReasons && delayReasons.length > 0 && (
-                <TopDelayReasonsChart data={delayReasons.map(r => ({ reason: r.reason, count: r.count }))} />
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="yield" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <YieldEfficiencyChart data={yieldDistributionData} />
-              <PlanVsActualChart data={planVsActualData} />
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   );
