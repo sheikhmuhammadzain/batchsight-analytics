@@ -81,15 +81,7 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
               Percentage of batches delayed vs on-time (threshold: {data.threshold_days} days)
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowInsights(true)}
-            className="flex items-center gap-2"
-          >
-            <Info className="h-4 w-4" />
-            Insights
-          </Button>
+          
         </CardHeader>
         <CardContent>
           <CustomPieChart

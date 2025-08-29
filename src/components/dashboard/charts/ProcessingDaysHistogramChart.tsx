@@ -56,15 +56,7 @@ export const ProcessingDaysHistogramChart = ({ data }: ProcessingDaysHistogramCh
               Distribution of batch processing times across all production lines
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowInsights(true)}
-            className="flex items-center gap-2"
-          >
-            <Info className="h-4 w-4" />
-            Insights
-          </Button>
+            
         </CardHeader>
         <CardContent>
           <CustomBarChart

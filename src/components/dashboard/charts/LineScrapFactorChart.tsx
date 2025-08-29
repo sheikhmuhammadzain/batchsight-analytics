@@ -75,15 +75,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
               Material waste percentage by production line
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowInsights(true)}
-            className="flex items-center gap-2"
-          >
-            <Info className="h-4 w-4" />
-            Insights
-          </Button>
+            
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
