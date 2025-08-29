@@ -84,12 +84,14 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
           
         </CardHeader>
         <CardContent>
-          <CustomPieChart
-            data={chartData}
-            config={chartConfig}
-            className="h-[300px]"
-            showLegend={true}
-          />
+          <div className="w-full flex flex-col items-center">
+            <CustomPieChart
+              data={chartData}
+              config={chartConfig}
+              className="h-[300px] w-full max-w-[560px] aspect-auto"
+              showLegend={true}
+            />
+          </div>
           {data.ai_insights && (
             <div className="mt-4 p-3 bg-muted rounded-md">
               <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
