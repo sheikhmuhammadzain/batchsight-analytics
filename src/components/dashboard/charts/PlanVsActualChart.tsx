@@ -55,7 +55,7 @@ export const PlanVsActualChart = ({ data, title = "Plan vs Actual Production" }:
                 if (active && payload && payload.length) {
                   const data = payload[0].payload;
                   return (
-                    <div className="bg-white p-2 border rounded shadow">
+                    <div className="bg-popover text-popover-foreground p-2 border rounded-md shadow-md">
                       <p>Batch: {data.batchId}</p>
                       <p>Planned: {data.planned}</p>
                       <p>Actual: {data.actual}</p>
@@ -68,14 +68,14 @@ export const PlanVsActualChart = ({ data, title = "Plan vs Actual Production" }:
             />
             <Scatter 
               dataKey="actual" 
-              fill="#8884d8"
+              fill={"hsl(var(--chart-2))"}
               fillOpacity={0.6}
             />
             <ReferenceLine 
               segment={[{ x: 0, y: 0 }, { x: maxValue, y: maxValue }]}
-              stroke="red" 
+              stroke={"hsl(var(--destructive))"} 
               strokeDasharray="5 5"
-              label={{ value: "Perfect Execution", position: "topLeft" }}
+              label={{ value: "Perfect Execution", position: "insideTopLeft" }}
             />
           </ScatterChart>
         </ResponsiveContainer>

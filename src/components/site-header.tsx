@@ -3,7 +3,6 @@
 import { SidebarTrigger } from "@/components/app-sidebar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { Bell, Download } from "lucide-react"
 
 export function SiteHeader() {
@@ -27,7 +26,6 @@ export function SiteHeader() {
           <Button variant="ghost" size="icon" className="h-9 w-9">
             <Bell className="size-4" />
           </Button>
-          <ThemeToggle />
         </div>
       </div>
     </header>

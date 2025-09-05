@@ -10,7 +10,6 @@ import { LineScrapFactorChart } from "./charts/LineScrapFactorChart";
 import { MonthlyDelayRateChart } from "./charts/MonthlyDelayRateChart";
 import { DelayReasonsByLineChart } from "./charts/DelayReasonsByLineChart";
 import { TopDelayReasonsChart } from "./charts/TopDelayReasonsChart";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useManufacturingData } from "@/hooks/useManufacturingData";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3, TrendingUp, Activity } from "lucide-react";
@@ -196,7 +195,6 @@ export const ManufacturingDashboard = () => {
               Real-time insights into batch processing and production efficiency
             </p>
           </div>
-          <ThemeToggle />
         </div>
 
         {/* Controls */}
@@ -211,7 +209,7 @@ export const ManufacturingDashboard = () => {
 
         {/* Debug Information (dev only) */}
         {isDev ? (
-          <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <div className="mb-8 p-4 bg-muted border border-border rounded-md">
             <h3 className="text-lg font-semibold mb-2">Debug Information</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
@@ -240,17 +238,17 @@ export const ManufacturingDashboard = () => {
                   return <ProcessingDaysHistogram data={processingDaysHistogram} />;
                 } else {
                   return (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                      <p className="text-gray-600">Processing Days Histogram data not available</p>
+                    <div className="p-4 bg-muted border border-border rounded-md">
+                      <p className="text-muted-foreground">Processing Days Histogram data not available</p>
                     </div>
                   );
                 }
               } catch (error) {
                 console.error('Error rendering ProcessingDaysHistogram:', error);
                 return (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-red-600">Error rendering Processing Days Histogram chart</p>
-                    <p className="text-red-500 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                  <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+                    <p className="text-destructive">Error rendering Processing Days Histogram chart</p>
+                    <p className="text-destructive/80 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
                   </div>
                 );
               }
@@ -265,17 +263,17 @@ export const ManufacturingDashboard = () => {
                   return <DelayShareChart data={delayShareData} />;
                 } else {
                   return (
-                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                      <p className="text-gray-600">Delay Share data not available</p>
+                    <div className="p-4 bg-muted border border-border rounded-md">
+                      <p className="text-muted-foreground">Delay Share data not available</p>
                     </div>
                   );
                 }
               } catch (error) {
                 console.error('Error rendering DelayShareChart:', error);
                 return (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-red-600">Error rendering Delay Share chart</p>
-                    <p className="text-red-500 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
+                  <div className="p-4 bg-destructive/10 border border-destructive rounded-md">
+                    <p className="text-destructive">Error rendering Delay Share chart</p>
+                    <p className="text-destructive/80 text-sm mt-1">{error instanceof Error ? error.message : 'Unknown error'}</p>
                   </div>
                 );
               }
@@ -287,8 +285,8 @@ export const ManufacturingDashboard = () => {
             {monthlyDelayData ? (
               <MonthlyDelayChart data={monthlyDelayData} />
             ) : (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-                <p className="text-gray-600">Monthly Average Delay data not available</p>
+              <div className="p-4 bg-muted border border-border rounded-md">
+                <p className="text-muted-foreground">Monthly Average Delay data not available</p>
               </div>
             )}
           </div>

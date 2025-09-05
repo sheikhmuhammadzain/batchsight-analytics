@@ -75,33 +75,33 @@ export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights, char
   const getInsightIcon = (type: ChartInsight['type']) => {
     switch (type) {
       case 'positive':
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-5 w-5 text-[hsl(var(--chart-1))]" />;
       case 'negative':
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+        return <AlertTriangle className="h-5 w-5 text-destructive" />;
       case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+        return <AlertTriangle className="h-5 w-5 text-[hsl(var(--chart-3))]" />;
       case 'info':
-        return <Info className="h-5 w-5 text-blue-500" />;
+        return <Info className="h-5 w-5 text-[hsl(var(--chart-4))]" />;
     }
   };
 
   const getImpactColor = (impact: ChartInsight['impact']) => {
     switch (impact) {
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-[hsl(var(--chart-3))]/10 text-[hsl(var(--chart-3))]';
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[hsl(var(--chart-1))]/10 text-[hsl(var(--chart-1))]';
     }
   };
 
   const getTrendIcon = (trend?: 'up' | 'down' | 'stable') => {
     switch (trend) {
       case 'up':
-        return <TrendingUp className="h-4 w-4 text-green-500" />;
+        return <TrendingUp className="h-4 w-4 text-[hsl(var(--chart-1))]" />;
       case 'down':
-        return <TrendingDown className="h-4 w-4 text-red-500" />;
+        return <TrendingDown className="h-4 w-4 text-destructive" />;
       default:
         return null;
     }
