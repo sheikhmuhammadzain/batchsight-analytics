@@ -124,7 +124,7 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
               <AvatarFallback>CY</AvatarFallback>
             </Avatar>
             <div className="leading-tight">
-              <div className="text-xs font-medium">Ibrahim</div>
+              <div className="text-xs font-medium">Muhammad Awais</div>
               <div className="text-xs text-muted-foreground">Admin</div>
             </div>
           </div>
