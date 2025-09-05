@@ -47,8 +47,7 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
     <Sidebar variant={variant} {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="size-6 rounded-md bg-primary" />
-          <div className="text-sm font-semibold">Berger Analytics</div>
+          <div className="text-sm font-semibold"><img height={150} width={150} src="/qbitlogo.png" alt="" /></div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -92,7 +91,6 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
                 <SidebarMenuAction>
                   <ChevronRight className="size-4" />
                 </SidebarMenuAction>
-                <SidebarMenuBadge>4</SidebarMenuBadge>
                 <SidebarMenuSub>
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton>Monthly</SidebarMenuSubButton>
