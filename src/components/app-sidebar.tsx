@@ -121,7 +121,7 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
         <div className="flex items-center justify-between rounded-md bg-sidebar-accent px-2 py-2">
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarFallback>CY</AvatarFallback>
+              <AvatarFallback>MA</AvatarFallback>
             </Avatar>
             <div className="leading-tight">
               <div className="text-xs font-medium">Muhammad Awais</div>
