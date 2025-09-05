@@ -35,8 +35,8 @@ export const LineDelayChart = ({ data }: LineDelayChartProps) => {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
+                backgroundColor: 'white',
+                border: '1px solid black',
                 borderRadius: '6px'
               }}
               formatter={(value: number, name: string) => [`${value}h`, name]}

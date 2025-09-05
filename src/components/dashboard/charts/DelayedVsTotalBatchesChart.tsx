@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { ChartTooltip, ChartTooltipContent, ChartContainer, ChartConfig } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import { useState } from "react";
@@ -50,6 +51,21 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
     }
   ];
 
+  const chartConfig: ChartConfig = {
+    on_time_batches: {
+      label: "On Time Batches",
+      color: "hsla(var(--chart-2))",
+    },
+    delayed_batches: {
+      label: "Delayed Batches",
+      color: "hsl(var(--chart-1))",
+    },
+    delay_rate: {
+      label: "Delay Rate %",
+      color: "hsl(var(--chart-3))",
+    },
+  };
+
   return (
     <>
       <Card>
@@ -63,7 +79,7 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
             
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
             <ComposedChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
@@ -81,15 +97,11 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
                 className="text-xs fill-muted-foreground"
                 label={{ value: 'Delay Rate (%)', angle: 90, position: 'insideRight' }}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '6px'
-                }}
+              <ChartTooltip
+                content={<ChartTooltipContent />}
                 formatter={(value: number, name: string) => {
-                  if (name === 'delay_rate') return [`${value.toFixed(1)}%`, 'Delay Rate'];
-                  return [value, name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())];
+                  if (name === 'delay_rate') return [`${(value as number).toFixed(1)}%`, 'Delay Rate'];
+                  return [value as any, name.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())];
                 }}
               />
               <Legend />
@@ -117,7 +129,7 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
                 dot={{ fill: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2, r: 4 }}
               />
             </ComposedChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </CardContent>
       </Card>
 

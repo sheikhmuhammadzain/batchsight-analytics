@@ -231,7 +231,7 @@ export const ManufacturingDashboard = () => {
         ) : null}
 
         {/* Manufacturing Analytics Charts - Ordered by API Endpoints */}
-        <div className="space-y-10">
+        <div className="space-y-10 ">
           {/* 1. Processing Days Histogram */}
           <div className="space-y-4">
             {(() => {

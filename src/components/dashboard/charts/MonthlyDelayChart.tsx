@@ -82,8 +82,8 @@ export const MonthlyDelayChart = ({ data }: MonthlyDelayChartProps) => {
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
+                  backgroundColor: 'white',
+                  border: '1px solid black',
                   borderRadius: '6px'
                 }}
                 formatter={(value: number) => [`${value.toFixed(1)} days`, 'Avg Processing Time']}

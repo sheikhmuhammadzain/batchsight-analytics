@@ -190,10 +190,29 @@ All colors MUST be HSL.
     background: hsl(var(--card)) !important;
   }
 
+  /* Force white tooltip background for Recharts default tooltip */
+  .recharts-default-tooltip {
+    background-color: hsl(var(--background)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+    border-radius: 6px !important;
+    color: hsl(var(--foreground)) !important;
+    box-shadow: var(--shadow-md);
+  }
+  .recharts-tooltip-label {
+    color: hsl(var(--foreground)) !important;
+  }
+
   /* Keep wide tables under viewport with smooth horizontal scroll */
   .table-sticky-viewport {
     position: sticky;
     bottom: 0;
     background: hsl(var(--background));
+  }
+
+  /* Force uniform chart card heights when wrapped in .chart-card */
+  .chart-card > * {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }

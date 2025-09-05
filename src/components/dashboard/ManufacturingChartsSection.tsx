@@ -51,54 +51,66 @@ export const ManufacturingChartsSection = () => {
 
   return (
     <div className="space-y-10">
-      <div className="space-y-4">
-        {processingDaysHistogram ? (
-          <ProcessingDaysHistogram data={processingDaysHistogram} />
-        ) : null}
+      {/* First row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {processingDaysHistogram ? (
+            <ProcessingDaysHistogram data={processingDaysHistogram} />
+          ) : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {delayShareData ? <DelayShareChart data={delayShareData} /> : null}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {delayShareData ? <DelayShareChart data={delayShareData} /> : null}
+      {/* Second row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {monthlyDelayData ? <MonthlyDelayChart data={monthlyDelayData} /> : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {lineAverageDelay ? <LineAverageDelayChart data={lineAverageDelay} /> : null}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {monthlyDelayData ? <MonthlyDelayChart data={monthlyDelayData} /> : null}
+      {/* Third row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {lineMonthlyAverageDelay ? <LineMonthlyAverageDelayChart data={lineMonthlyAverageDelay} /> : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {delayedBatchesByLine ? <DelayedBatchesByLineChart data={delayedBatchesByLine} /> : null}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {lineAverageDelay ? <LineAverageDelayChart data={lineAverageDelay} /> : null}
+      {/* Fourth row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {delayedVsTotalBatches ? <DelayedVsTotalBatchesChart data={delayedVsTotalBatches} /> : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {topDelayFormulas ? <TopDelayFormulasChart data={topDelayFormulas} /> : null}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {lineMonthlyAverageDelay ? <LineMonthlyAverageDelayChart data={lineMonthlyAverageDelay} /> : null}
+      {/* Fifth row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {lineScrapFactor ? <LineScrapFactorChart data={lineScrapFactor} /> : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {monthlyDelayRate ? <MonthlyDelayRateChart data={monthlyDelayRate} /> : null}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {delayedBatchesByLine ? <DelayedBatchesByLineChart data={delayedBatchesByLine} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {delayedVsTotalBatches ? <DelayedVsTotalBatchesChart data={delayedVsTotalBatches} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {topDelayFormulas ? <TopDelayFormulasChart data={topDelayFormulas} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {lineScrapFactor ? <LineScrapFactorChart data={lineScrapFactor} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {monthlyDelayRate ? <MonthlyDelayRateChart data={monthlyDelayRate} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {delayReasonsByLine ? <DelayReasonsByLineChart data={delayReasonsByLine} /> : null}
-      </div>
-
-      <div className="space-y-4">
-        {topDelayReasons ? <TopDelayReasonsChart data={topDelayReasons} /> : null}
+      {/* Sixth row */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {delayReasonsByLine ? <DelayReasonsByLineChart data={delayReasonsByLine} /> : null}
+        </div>
+        <div className="space-y-4 chart-card min-h-[420px]">
+          {topDelayReasons ? <TopDelayReasonsChart data={topDelayReasons} /> : null}
+        </div>
       </div>
     </div>
   );

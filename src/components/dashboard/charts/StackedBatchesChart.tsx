@@ -32,8 +32,8 @@ export const StackedBatchesChart = ({ data }: StackedBatchesChartProps) => {
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
+                backgroundColor: 'white',
+                border: '1px solid black',
                 borderRadius: '6px'
               }}
             />
