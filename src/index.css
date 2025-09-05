@@ -172,6 +172,7 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
+    overflow-x: hidden;
   }
 
   /* Chart container styling */
@@ -187,5 +188,12 @@ All colors MUST be HSL.
   /* Chart wrapper styling */
   .recharts-wrapper {
     background: hsl(var(--card)) !important;
+  }
+
+  /* Keep wide tables under viewport with smooth horizontal scroll */
+  .table-sticky-viewport {
+    position: sticky;
+    bottom: 0;
+    background: hsl(var(--background));
   }
 }
