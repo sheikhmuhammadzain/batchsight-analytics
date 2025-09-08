@@ -7,10 +7,25 @@ import { Bell, Download } from "lucide-react"
 import React from "react"
 import { exportAllDataToCSV, triggerDownload } from "@/lib/export"
 import { useToast } from "@/hooks/use-toast"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function SiteHeader() {
   const [exporting, setExporting] = React.useState(false)
   const { toast } = useToast()
+  const [notifications, setNotifications] = React.useState<
+    { id: string; title: string; description?: string; read?: boolean; time?: string }[]
+  >([
+    { id: "1", title: "Delayed batches spike on Line 7", description: "Delay rate 31% today", read: false, time: "2m" },
+    { id: "2", title: "Monthly export ready", description: "Generated at 10:15 AM", read: true, time: "1h" },
+    { id: "3", title: "Scrap factor above target on Line 3", description: "3.4% vs 3%", read: false, time: "3h" },
+  ])
 
   const handleExport = async () => {
     try {
@@ -59,9 +74,42 @@ export function SiteHeader() {
             <Download className="mr-2 size-4" />
             {exporting ? "Exporting…" : "Export"}
           </Button>
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Bell className="size-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 relative" aria-label="Notifications">
+                <Bell className="size-4" />
+                {notifications.some(n => !n.read) && (
+                  <span className="absolute -top-0.5 -right-0.5 inline-flex h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {notifications.length === 0 ? (
+                <div className="py-6 text-sm text-muted-foreground text-center">No notifications</div>
+              ) : (
+                notifications.map((n) => (
+                  <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-0.5">
+                    <div className="flex w-full items-center justify-between">
+                      <span className={n.read ? "" : "font-medium"}>{n.title}</span>
+                      {n.time ? <span className="text-[10px] text-muted-foreground">{n.time}</span> : null}
+                    </div>
+                    {n.description ? (
+                      <span className="text-xs text-muted-foreground">{n.description}</span>
+                    ) : null}
+                  </DropdownMenuItem>
+                ))
+              )}
+              <DropdownMenuSeparator />
+              <div className="px-2 py-1.5 text-xs flex items-center justify-between gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))}>
+                  Mark all as read
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setNotifications([])}>Clear</Button>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
