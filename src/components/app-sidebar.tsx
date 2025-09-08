@@ -37,12 +37,14 @@ import {
   Settings,
   UserRound,
 } from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   variant?: "sidebar" | "floating" | "inset"
 }
 
 export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
+  const { pathname } = useLocation()
   return (
     <Sidebar variant={variant} {...props}>
       <SidebarHeader>
@@ -56,21 +58,27 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive tooltip="Dashboard">
-                  <Home />
-                  <span>Dashboard</span>
+                <SidebarMenuButton asChild isActive={pathname === "/"} tooltip="Dashboard">
+                  <NavLink to="/">
+                    <Home />
+                    <span>Dashboard</span>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Analytics">
-                  <BarChart3 />
-                  <span>Analytics</span>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/analytics")} tooltip="Analytics">
+                  <NavLink to="/analytics">
+                    <BarChart3 />
+                    <span>Analytics</span>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Trends">
-                  <LineChart />
-                  <span>Trends</span>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/trends")} tooltip="Trends">
+                  <NavLink to="/trends">
+                    <LineChart />
+                    <span>Trends</span>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -84,32 +92,42 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Performance">
-                  <Activity />
-                  <span>Performance</span>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/performance")} tooltip="Performance">
+                  <NavLink to="/performance">
+                    <Activity />
+                    <span>Performance</span>
+                  </NavLink>
                 </SidebarMenuButton>
                 <SidebarMenuAction>
                   <ChevronRight className="size-4" />
                 </SidebarMenuAction>
                 <SidebarMenuSub>
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton>Monthly</SidebarMenuSubButton>
+                    <SidebarMenuSubButton asChild isActive={pathname === "/performance/monthly"}>
+                      <NavLink to="/performance/monthly">Monthly</NavLink>
+                    </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
-                    <SidebarMenuSubButton>Quarterly</SidebarMenuSubButton>
+                    <SidebarMenuSubButton asChild isActive={pathname === "/performance/quarterly"}>
+                      <NavLink to="/performance/quarterly">Quarterly</NavLink>
+                    </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Production">
-                  <Layers3 />
-                  <span>Production</span>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/production")} tooltip="Production">
+                  <NavLink to="/production">
+                    <Layers3 />
+                    <span>Production</span>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Schedules">
-                  <CalendarFold />
-                  <span>Schedules</span>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/schedules")} tooltip="Schedules">
+                  <NavLink to="/schedules">
+                    <CalendarFold />
+                    <span>Schedules</span>
+                  </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
