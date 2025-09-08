@@ -35,9 +35,12 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
     scrap_factor: data.avg_scrap_factor[index] || 0,
   }));
 
+  // Threshold for high scrap factor (5%)
+  const threshold = 0.05;
+
   const avgScrapFactor = chartData.reduce((sum, item) => sum + item.scrap_factor, 0) / chartData.length;
   const maxScrapFactor = Math.max(...chartData.map(item => item.scrap_factor));
-  const highScrapLines = chartData.filter(item => item.scrap_factor > 0.03).length;
+  const highScrapLines = chartData.filter(item => item.scrap_factor > threshold).length;
   const insightType: 'negative' | 'warning' | 'positive' | 'info' =
     avgScrapFactor > 0.035 ? 'negative' : avgScrapFactor > 0.025 ? 'warning' : 'positive';
   const insightImpact: 'high' | 'medium' | 'low' =
@@ -46,16 +49,16 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
   const insights = [
     {
       title: "Line Scrap Factor Analysis",
-      description: `Average scrap factor is ${(avgScrapFactor * 100).toFixed(2)}%. ${highScrapLines} lines exceed the 3% threshold.`,
+      description: `Average scrap factor is ${(avgScrapFactor * 100).toFixed(2)}%. ${highScrapLines} lines exceed the ${(threshold * 100).toFixed(0)}% threshold.`,
       type: insightType,
       impact: insightImpact,
       metrics: [
         { label: "Average Scrap Factor", value: `${(avgScrapFactor * 100).toFixed(2)}%` },
         { label: "Highest Scrap Factor", value: `${(maxScrapFactor * 100).toFixed(2)}%` },
-        { label: "Lines Above 3%", value: highScrapLines }
+        { label: `Lines Above ${(threshold * 100).toFixed(0)}%`, value: highScrapLines }
       ],
       recommendations: [
-        "Focus on lines with scrap factors above 3%",
+        `Focus on lines with scrap factors above ${(threshold * 100).toFixed(0)}%`,
         "Investigate material handling procedures on high-scrap lines",
         "Implement quality control measures to reduce waste",
         "Share best practices from low-scrap performing lines"
@@ -98,7 +101,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
                 formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Scrap Factor']}
                 labelFormatter={(label: number) => `Line ${label}`}
               />
-              <ReferenceLine y={0.03} stroke="hsl(217.2193, 91.2195%, 59.8039%)" strokeDasharray="5 5" label="3% Threshold" />
+              <ReferenceLine y={threshold} stroke="hsl(217.2193, 91.2195%, 59.8039%)" strokeDasharray="5 5" label={`${(threshold * 100).toFixed(0)}% Threshold`} />
               <Bar
                 dataKey="scrap_factor"
                 fill="hsl(217.2193, 91.2195%, 59.8039%)"

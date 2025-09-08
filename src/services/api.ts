@@ -1,5 +1,5 @@
 // API service for batch processing data
-const API_BASE_URL = 'https://vercel-deployment-mu-two.vercel.app';
+const API_BASE_URL = 'https://data-analysis-fawn.vercel.app';
 
 // API Response Interfaces
 export interface RootResponse {

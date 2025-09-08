@@ -46,8 +46,8 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
   return (
     <Sidebar variant={variant} {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="text-sm font-semibold"><img height={150} width={150} src="/qbitlogo.png" alt="" /></div>
+        <div className="flex items-center gap-2 ">
+          <div className="text-sm font-semibold"><img height={250} width={250} src="/bergerlogo.png" alt="" /></div>
         </div>
       </SidebarHeader>
       <SidebarContent>
