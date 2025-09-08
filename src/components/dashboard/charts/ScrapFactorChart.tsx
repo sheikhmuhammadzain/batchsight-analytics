@@ -1,11 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
 import { useChartInsights } from "@/hooks/useChartInsights";
 import { ScrapFactorData } from "@/types/manufacturing";
+import { InsightsButton } from "@/components/InsightsButton";
 
 interface ScrapFactorChartProps {
   data: ScrapFactorData[];
@@ -42,7 +41,7 @@ export const ScrapFactorChart = ({ data }: ScrapFactorChartProps) => {
               Material waste percentage by production line
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>

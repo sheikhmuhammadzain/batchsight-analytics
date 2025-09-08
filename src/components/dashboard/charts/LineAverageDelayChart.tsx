@@ -1,10 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
-import { AIInsights } from "@/components/AIInsights";
+import { InsightsButton } from "@/components/InsightsButton";
 import { LineAverageDelayData } from "@/services/api";
 
 interface LineAverageDelayChartProps {
@@ -72,7 +70,7 @@ export const LineAverageDelayChart = ({ data }: LineAverageDelayChartProps) => {
               Average processing delay by production line (threshold: {data.threshold} days)
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -109,12 +107,6 @@ export const LineAverageDelayChart = ({ data }: LineAverageDelayChartProps) => {
               />
             </BarChart>
           </ResponsiveContainer>
-          {data.ai_insights && (
-            <div className="mt-4 p-3 bg-muted rounded-md">
-              <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-              <AIInsights text={data.ai_insights} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -123,6 +115,7 @@ export const LineAverageDelayChart = ({ data }: LineAverageDelayChartProps) => {
         onClose={() => setShowInsights(false)}
         chartTitle="Line Average Delay"
         insights={insights}
+        aiText={data.ai_insights}
       />
     </>
   );

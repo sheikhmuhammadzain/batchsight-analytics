@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { DelayReasonsByLineData } from "@/services/api";
+import { useState } from "react";
+import { ChartInsightsModal, ChartInsight } from "../ChartInsightsModal";
+import { InsightsButton } from "@/components/InsightsButton";
 
 interface DelayReasonsByLineChartProps {
   data: DelayReasonsByLineData;
@@ -20,6 +23,7 @@ const lineColors = [
 ];
 
 export const DelayReasonsByLineChart = ({ data }: DelayReasonsByLineChartProps) => {
+  const [showInsights, setShowInsights] = useState(false);
   // Validate data structure
   if (!data || !data.delay_reasons_by_line || typeof data.delay_reasons_by_line !== 'object') {
     return (
@@ -54,55 +58,95 @@ export const DelayReasonsByLineChart = ({ data }: DelayReasonsByLineChartProps) 
 
   const lines = Object.keys(data.delay_reasons_by_line).sort((a, b) => parseInt(a) - parseInt(b));
 
+  // Build simple insights
+  const totalsByReason: Record<string, number> = {};
+  Object.values(data.delay_reasons_by_line).forEach((lineReasons: Record<string, number>) => {
+    Object.entries(lineReasons).forEach(([reason, count]) => {
+      totalsByReason[reason] = (totalsByReason[reason] || 0) + count;
+    });
+  });
+  const totalIncidents = Object.values(totalsByReason).reduce((s, v) => s + v, 0);
+  const topReason = Object.entries(totalsByReason).sort((a, b) => b[1] - a[1])[0];
+  const insights: ChartInsight[] = [
+    {
+      title: "Delay Reasons Overview",
+      description: `Aggregated across lines, total incidents are ${totalIncidents.toLocaleString()}. Top reason is ${topReason?.[0] ?? 'N/A'} with ${topReason?.[1] ?? 0} incidents. Threshold: ${data.threshold_days} days.`,
+      type: 'info',
+      impact: 'medium',
+      metrics: [
+        { label: "Total Incidents", value: totalIncidents },
+        { label: "Top Reason", value: topReason?.[0] ?? 'N/A' },
+        { label: "Top Reason Count", value: topReason?.[1] ?? 0 }
+      ],
+      recommendations: [
+        "Prioritize root-cause actions for the top 3 reasons",
+        "Align preventive measures with lines most impacted",
+        "Track reduction week-over-week"
+      ]
+    }
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Delay Reasons by Production Line</CardTitle>
-        <CardDescription>
-          Breakdown of delay causes across production lines (threshold: {data.threshold_days} days)
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="reason"
-              className="text-xs fill-muted-foreground"
-              angle={-45}
-              textAnchor="end"
-              height={100}
-              interval={0}
-            />
-            <YAxis
-              className="text-xs fill-muted-foreground"
-              label={{ value: 'Number of Incidents', angle: -90, position: 'insideLeft' }}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid black',
-                borderRadius: '6px'
-              }}
-              formatter={(value: number, name: string) => [
-                value,
-                name.replace('line_', 'Line ')
-              ]}
-            />
-            <Legend />
-            {lines.map((line, index) => (
-              <Bar
-                key={line}
-                dataKey={`line_${line}`}
-                stackId="reasons"
-                fill={lineColors[index % lineColors.length]}
-                name={`Line ${line}`}
-                radius={index === lines.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Delay Reasons by Production Line</CardTitle>
+            <CardDescription>
+              Breakdown of delay causes across production lines (threshold: {data.threshold_days} days)
+            </CardDescription>
+          </div>
+          <InsightsButton onClick={() => setShowInsights(true)} />
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis
+                dataKey="reason"
+                className="text-xs fill-muted-foreground"
+                angle={-45}
+                textAnchor="end"
+                height={100}
+                interval={0}
               />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+              <YAxis
+                className="text-xs fill-muted-foreground"
+                label={{ value: 'Number of Incidents', angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid black',
+                  borderRadius: '6px'
+                }}
+                formatter={(value: number, name: string) => [
+                  value,
+                  name.replace('line_', 'Line ')
+                ]}
+              />
+              <Legend />
+              {lines.map((line, index) => (
+                <Bar
+                  key={line}
+                  dataKey={`line_${line}`}
+                  stackId="reasons"
+                  fill={lineColors[index % lineColors.length]}
+                  name={`Line ${line}`}
+                  radius={index === lines.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <ChartInsightsModal
+        isOpen={showInsights}
+        onClose={() => setShowInsights(false)}
+        chartTitle="Delay Reasons by Production Line"
+        insights={insights}
+      />
+    </>
   );
 };

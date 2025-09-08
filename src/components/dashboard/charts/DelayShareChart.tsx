@@ -1,9 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { InsightsButton } from "@/components/InsightsButton";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
-import { AIInsights } from "@/components/AIInsights";
 import { useChartInsights } from "@/hooks/useChartInsights";
 import { DelayShareData } from "@/services/api";
 import { CustomPieChart } from "@/components/charts";
@@ -81,7 +79,7 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
               Percentage of batches delayed vs on-time (threshold: {data.threshold_days} days)
             </CardDescription>
           </div>
-          
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <div className="w-full flex flex-col items-center">
@@ -92,12 +90,6 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
               showLegend={true}
             />
           </div>
-          {data.ai_insights && (
-            <div className="mt-4 p-3 bg-muted rounded-md">
-              <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-              <AIInsights text={data.ai_insights} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -106,6 +98,7 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
         onClose={() => setShowInsights(false)}
         chartTitle="Delay Share Distribution"
         insights={delayShareInsights}
+        aiText={data.ai_insights}
       />
     </>
   );

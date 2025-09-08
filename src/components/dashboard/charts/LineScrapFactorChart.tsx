@@ -1,10 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
-import { AIInsights } from "@/components/AIInsights";
+import { InsightsButton } from "@/components/InsightsButton";
 import { LineScrapFactorData } from "@/services/api";
 
 interface LineScrapFactorChartProps {
@@ -75,7 +73,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
               Material waste percentage by production line
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -108,12 +106,6 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
               />
             </BarChart>
           </ResponsiveContainer>
-          {data.ai_insights && (
-            <div className="mt-4 p-3 bg-muted rounded-md">
-              <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-              <AIInsights text={data.ai_insights} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -122,6 +114,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
         onClose={() => setShowInsights(false)}
         chartTitle="Line Scrap Factor"
         insights={insights}
+        aiText={data.ai_insights}
       />
     </>
   );

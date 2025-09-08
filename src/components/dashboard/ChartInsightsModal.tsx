@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import { CustomBarChart, CustomLineChart } from "@/components/charts";
 import { ChartConfig } from "@/components/ui/chart";
+import { AIInsights } from "@/components/AIInsights";
 
 export interface ChartInsight {
   title: string;
@@ -21,9 +22,10 @@ interface ChartInsightsModalProps {
   insights: ChartInsight[];
   chartData?: Array<Record<string, any>>;
   chartType?: 'bar' | 'line' | 'area' | 'pie';
+  aiText?: string | null;
 }
 
-export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights, chartData, chartType = 'bar' }: ChartInsightsModalProps) => {
+export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights, chartData, chartType = 'bar', aiText }: ChartInsightsModalProps) => {
   // Sample chart data and configuration for demonstration
   const sampleChartData = chartData || [
     { period: "Q1", actual: 186, target: 200, efficiency: 93 },
@@ -117,18 +119,24 @@ export const ChartInsightsModal = ({ isOpen, onClose, chartTitle, insights, char
           </DialogDescription>
         </DialogHeader>
 
+        {aiText ? (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>AI Insights</CardTitle>
+              <CardDescription>
+                Generated commentary from your data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="p-2 bg-muted/50 rounded-md">
+                <AIInsights text={aiText} />
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {/* Chart Visualization */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Performance Visualization</CardTitle>
-            <CardDescription>
-              Interactive chart showing key metrics and trends
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderChart()}
-          </CardContent>
-        </Card>
+        
 
         <div className="space-y-6">
           {insights.map((insight, index) => (

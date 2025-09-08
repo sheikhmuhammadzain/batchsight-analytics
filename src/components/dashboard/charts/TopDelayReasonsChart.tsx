@@ -1,12 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LabelList } from "recharts";
 import { TopDelayReasonsData } from "@/services/api";
+import { useState } from "react";
+import { InsightsButton } from "@/components/InsightsButton";
+import { ChartInsightsModal, ChartInsight } from "../ChartInsightsModal";
 
 interface TopDelayReasonsChartProps {
   data: TopDelayReasonsData;
 }
 
 export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
+  const [showInsights, setShowInsights] = useState(false);
   // Validate data structure
   if (!data || !data.top_delay_reasons || !Array.isArray(data.top_delay_reasons)) {
     return (
@@ -34,17 +38,39 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
 
   const totalIncidents = chartData.reduce((sum, item) => sum + item.count, 0);
   const maxCount = Math.max(...chartData.map((d) => d.count));
+  const insights: ChartInsight[] = [
+    {
+      title: "Top Delay Reasons",
+      description: `Total incidents: ${totalIncidents.toLocaleString()}. Leading reason: ${chartData[0]?.reason} (${chartData[0]?.sharePercent}%). Threshold: ${data.threshold_days} days.`,
+      type: 'info',
+      impact: 'medium',
+      metrics: [
+        { label: "Total Incidents", value: totalIncidents },
+        { label: "Top Reason", value: chartData[0]?.reason },
+        { label: "Top Reason Share", value: `${chartData[0]?.sharePercent}%` }
+      ],
+      recommendations: [
+        "Prioritize mitigation actions for top reasons",
+        "Assign owners and timelines for top 3 causes",
+        "Monitor weekly deltas after interventions"
+      ]
+    }
+  ];
 
   const formatCount = (v: number) =>
     v >= 1000 ? `${Math.round(v / 100) / 10}k` : `${v}`;
 
   return (
+    <>
     <Card>
-      <CardHeader>
-        <CardTitle>Top Delay Reasons</CardTitle>
-        <CardDescription>
-          Top 10 delay causes ranked by incident count (threshold: {data.threshold_days} days)
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Top Delay Reasons</CardTitle>
+          <CardDescription>
+            Top 10 delay causes ranked by incident count (threshold: {data.threshold_days} days)
+          </CardDescription>
+        </div>
+        <InsightsButton onClick={() => setShowInsights(true)} />
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={440}>
@@ -101,5 +127,12 @@ export const TopDelayReasonsChart = ({ data }: TopDelayReasonsChartProps) => {
         </div>
       </CardContent>
     </Card>
+    <ChartInsightsModal
+      isOpen={showInsights}
+      onClose={() => setShowInsights(false)}
+      chartTitle="Top Delay Reasons"
+      insights={insights}
+    />
+    </>
   );
 };

@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { InsightsButton } from "@/components/InsightsButton";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
 import { ProcessingDaysHistogramData } from "@/services/api";
@@ -56,7 +55,7 @@ export const ProcessingDaysHistogramChart = ({ data }: ProcessingDaysHistogramCh
               Distribution of batch processing times across all production lines
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <CustomBarChart
@@ -74,6 +73,7 @@ export const ProcessingDaysHistogramChart = ({ data }: ProcessingDaysHistogramCh
         onClose={() => setShowInsights(false)}
         chartTitle="Processing Days Histogram"
         insights={insights}
+        aiText={data.ai_insights}
       />
     </>
   );

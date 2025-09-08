@@ -1,10 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
+import { InsightsButton } from "@/components/InsightsButton";
 import { LineMonthlyAverageDelayData } from "@/services/api";
-import { AIInsights } from "@/components/AIInsights";
 import { CustomLineChart } from "@/components/charts";
 import { ChartConfig } from "@/components/ui/chart";
 
@@ -92,7 +90,7 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
               Average processing time per month with 2-day threshold
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent className="p-6">
           <div className="mb-4">
@@ -124,12 +122,6 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
               )}
             </div>
           )}
-          {data.ai_insights && (
-            <div className="mt-4 p-3 bg-muted rounded-md">
-              <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-              <AIInsights text={data.ai_insights} />
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -138,6 +130,7 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
         onClose={() => setShowInsights(false)}
         chartTitle="Line Monthly Average Delay"
         insights={insights}
+        aiText={data.ai_insights}
       />
     </>
   );

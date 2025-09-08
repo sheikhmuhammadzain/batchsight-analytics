@@ -1,10 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { ChartTooltip, ChartTooltipContent, ChartContainer, ChartConfig } from "@/components/ui/chart";
-import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
+import { InsightsButton } from "@/components/InsightsButton";
 import { DelayedVsTotalBatchesData } from "@/services/api";
 
 interface DelayedVsTotalBatchesChartProps {
@@ -76,7 +75,7 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
               Comparison of delayed and total batch volumes across production lines
             </CardDescription>
           </div>
-            
+          <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -138,6 +137,7 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
         onClose={() => setShowInsights(false)}
         chartTitle="Delayed vs Total Batches by Line"
         insights={insights}
+        aiText={data.ai_insights}
       />
     </>
   );

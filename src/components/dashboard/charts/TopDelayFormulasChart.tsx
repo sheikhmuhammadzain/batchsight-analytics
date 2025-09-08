@@ -1,13 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ResponsiveContainer, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { TopDelayFormulasData } from "@/services/api";
-import { AIInsights } from "@/components/AIInsights";
+import { InsightsButton } from "@/components/InsightsButton";
+import { useState } from "react";
+import { ChartInsightsModal, ChartInsight } from "../ChartInsightsModal";
 
 interface TopDelayFormulasChartProps {
   data: TopDelayFormulasData;
 }
 
 export const TopDelayFormulasChart = ({ data }: TopDelayFormulasChartProps) => {
+  const [showInsights, setShowInsights] = useState(false);
   // Validate data structure
   if (!data || !Array.isArray(data.formula_ids) || !Array.isArray(data.delay_rates)) {
     return (
@@ -42,13 +45,38 @@ export const TopDelayFormulasChart = ({ data }: TopDelayFormulasChartProps) => {
     };
   });
 
+  const top = chartData[0];
+  const avg = chartData.reduce((s, d) => s + d.delayRate, 0) / chartData.length;
+  const insights: ChartInsight[] = [
+    {
+      title: "Top Delay Formulas (Pareto)",
+      description: `Average delay rate among top formulas is ${avg.toFixed(1)}%. Highest is ${top?.delayRate ?? 0}% for formula ${top?.formula ?? ''}.`,
+      type: 'info',
+      impact: 'medium',
+      metrics: [
+        { label: "Average Delay Rate", value: `${avg.toFixed(1)}%` },
+        { label: "Top Formula", value: top?.formula ?? 'N/A' },
+        { label: "Top Formula Rate", value: `${top?.delayRate ?? 0}%` },
+      ],
+      recommendations: [
+        "Prioritize investigation of highest-delay formulas",
+        "Review recipe and process parameters for top contributors",
+        "Implement targeted corrective actions and monitor impact",
+      ]
+    }
+  ];
+
   return (
+    <>
     <Card>
-      <CardHeader>
-        <CardTitle>Top Delay Formulas (Pareto Analysis)</CardTitle>
-        <CardDescription>
-          Formula delay rates ranked by performance impact
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Top Delay Formulas (Pareto Analysis)</CardTitle>
+          <CardDescription>
+            Formula delay rates ranked by performance impact
+          </CardDescription>
+        </div>
+        <InsightsButton onClick={() => setShowInsights(true)} />
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -94,13 +122,15 @@ export const TopDelayFormulasChart = ({ data }: TopDelayFormulasChartProps) => {
             />
           </ComposedChart>
         </ResponsiveContainer>
-        {data.ai_insights && (
-          <div className="mt-4 p-3 bg-muted rounded-md">
-            <h4 className="font-semibold text-sm mb-2">AI Insights</h4>
-            <AIInsights text={data.ai_insights} />
-          </div>
-        )}
       </CardContent>
     </Card>
+    <ChartInsightsModal
+      isOpen={showInsights}
+      onClose={() => setShowInsights(false)}
+      chartTitle="Top Delay Formulas"
+      insights={insights}
+      aiText={data.ai_insights}
+    />
+    </>
   );
 };
