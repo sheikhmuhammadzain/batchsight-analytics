@@ -118,7 +118,8 @@ export const DelayReasonsByLineChart = ({ data }: DelayReasonsByLineChartProps) 
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid black',
-                  borderRadius: '6px'
+                  borderRadius: '6px',
+                  zIndex: 1000
                 }}
                 formatter={(value: number, name: string) => [
                   value,

@@ -198,7 +198,28 @@ const ChartTooltipContent = React.forwardRef<
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                  (() => {
+                    const result = formatter(item.value, item.name, item, index, item.payload)
+                    // Support Recharts array return: [value, name]
+                    if (Array.isArray(result)) {
+                      const [val, n] = result as any[]
+                      const numeric = typeof val === "number" ? val : Number(val)
+                      const isNumeric = !Number.isNaN(numeric)
+
+                      const formattedValue = isNumeric
+                        ? formatTooltipNumber(numeric, String(n))
+                        : String(val)
+
+                      return (
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <span className="text-muted-foreground">{String(n)}</span>
+                          <span className="font-mono font-medium tabular-nums text-foreground">{formattedValue}</span>
+                        </div>
+                      )
+                    }
+                    // If custom ReactNode, render as-is but keep spacing wrapper
+                    return <div className="flex w-full items-center justify-between gap-2">{result as React.ReactNode}</div>
+                  })()
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -238,7 +259,7 @@ const ChartTooltipContent = React.forwardRef<
                         </span>
                       </div>
                       <span className="font-mono font-medium tabular-nums text-foreground">
-                        {item.value?.toLocaleString()}
+                        {formatTooltipNumber(item.value, String(itemConfig?.label || item.name))}
                       </span>
                     </div>
                   </>
@@ -317,6 +338,25 @@ const ChartLegendContent = React.forwardRef<
 )
 ChartLegendContent.displayName = "ChartLegendContent"
 
+// Numeric formatting helper for tooltip values
+function formatTooltipNumber(value: any, name?: string) {
+  const num = typeof value === "number" ? value : Number(value)
+  if (Number.isNaN(num)) return String(value)
+
+  const lower = String(name || "").toLowerCase()
+  const isPercent = lower.includes("percent") || lower.includes("rate") || lower.includes("%")
+
+  if (isPercent) {
+    return `${num.toFixed(1)}${lower.includes("%") ? "" : "%"}`
+  }
+
+  if (Number.isInteger(num)) return num.toLocaleString()
+
+  const abs = Math.abs(num)
+  if (abs < 1) return num.toFixed(2)
+  return num.toFixed(1)
+}
+
 // Helper function to get config from payload
 function getPayloadConfigFromPayload(
   config: ChartConfig,
@@ -364,4 +404,5 @@ export {
   ChartLegendContent,
   ChartStyle,
   useChart,
+  formatTooltipNumber
 }
