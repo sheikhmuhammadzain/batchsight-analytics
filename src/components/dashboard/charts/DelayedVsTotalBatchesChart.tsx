@@ -108,24 +108,24 @@ export const DelayedVsTotalBatchesChart = ({ data }: DelayedVsTotalBatchesChartP
                 yAxisId="left"
                 dataKey="on_time_batches" 
                 stackId="batches"
-                fill="hsla(217.2193, 91.2195%, 59.8039%, 0.35)" 
+                fill="hsl(var(--primary) / 0.35)" 
                 name="On Time Batches"
               />
               <Bar 
                 yAxisId="left"
                 dataKey="delayed_batches" 
                 stackId="batches"
-                fill="hsl(217.2193, 91.2195%, 59.8039%)" 
+                fill="hsl(var(--primary))" 
                 name="Delayed Batches"
               />
               <Line 
                 yAxisId="right"
                 type="monotone" 
                 dataKey="delay_rate" 
-                stroke="hsl(217.2193, 91.2195%, 59.8039%)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={3}
                 name="Delay Rate %"
-                dot={{ fill: 'hsl(217.2193, 91.2195%, 59.8039%)', strokeWidth: 2, r: 4 }}
+                dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }}
               />
             </ComposedChart>
           </ChartContainer>

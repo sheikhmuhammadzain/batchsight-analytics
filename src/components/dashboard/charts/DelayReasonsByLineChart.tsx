@@ -10,16 +10,16 @@ interface DelayReasonsByLineChartProps {
 }
 
 const lineColors = [
-  'hsl(217.2193, 91.2195%, 59.8039%)',
-  'hsl(217.2193, 91.2195%, 66%)',
-  'hsl(217.2193, 91.2195%, 52%)',
-  'hsl(217.2193, 91.2195%, 74%)',
-  'hsl(217.2193, 91.2195%, 45%)',
-  'hsl(217.2193, 91.2195%, 82%)',
-  'hsl(217.2193, 91.2195%, 38%)',
-  'hsl(217.2193, 91.2195%, 88%)',
-  'hsl(217.2193, 91.2195%, 31%)',
-  'hsl(217.2193, 91.2195%, 93%)'
+  'hsl(var(--primary))',
+  'hsl(var(--primary) / 0.9)',
+  'hsl(var(--primary) / 0.8)',
+  'hsl(var(--primary) / 0.7)',
+  'hsl(var(--primary) / 0.6)',
+  'hsl(var(--primary) / 0.5)',
+  'hsl(var(--primary) / 0.4)',
+  'hsl(var(--primary) / 0.3)',
+  'hsl(var(--primary) / 0.2)',
+  'hsl(var(--primary) / 0.1)'
 ];
 
 export const DelayReasonsByLineChart = ({ data }: DelayReasonsByLineChartProps) => {

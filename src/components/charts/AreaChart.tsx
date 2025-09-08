@@ -58,7 +58,7 @@ export function CustomAreaChart({
         {referenceLine && (
           <ReferenceLine
             y={referenceLine.y}
-            stroke="hsl(217.2193, 91.2195%, 59.8039%)"
+            stroke="hsl(var(--primary))"
             strokeDasharray="5 5"
             label={{ value: referenceLine.label, position: "top" }}
           />
@@ -68,9 +68,9 @@ export function CustomAreaChart({
             key={key}
             dataKey={key}
             type="monotone"
-            fill={(config as any)[key]?.color || `var(--color-${key}, hsl(217.2193, 91.2195%, 59.8039%))`}
+            fill={(config as any)[key]?.color || `var(--color-${key}, hsl(var(--primary)))`}
             fillOpacity={0.4}
-            stroke={(config as any)[key]?.color || `var(--color-${key}, hsl(217.2193, 91.2195%, 59.8039%))`}
+            stroke={(config as any)[key]?.color || `var(--color-${key}, hsl(var(--primary)))`}
             strokeWidth={2}
             stackId={stacked ? "a" : undefined}
           />

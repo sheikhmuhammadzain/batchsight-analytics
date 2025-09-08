@@ -11,8 +11,8 @@ interface DelayShareChartProps {
   data: DelayShareData;
 }
 
-const PRIMARY_BLUE = 'hsl(217.2193, 91.2195%, 59.8039%)';
-const PRIMARY_BLUE_SOFT = 'hsla(217.2193, 91.2195%, 59.8039%, 0.35)';
+const PRIMARY = 'hsl(var(--primary))';
+const PRIMARY_SOFT = 'hsl(var(--primary) / 0.35)';
 
 export const DelayShareChart = ({ data }: DelayShareChartProps) => {
   const [showInsights, setShowInsights] = useState(false);
@@ -36,7 +36,7 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
 
   // Transform API data into chart format for shadcn pie chart
   const chartData = data.categories.map((category, index) => {
-    const color = category === 'Delayed' ? PRIMARY_BLUE : PRIMARY_BLUE_SOFT;
+    const color = category === 'Delayed' ? PRIMARY : PRIMARY_SOFT;
     return {
       name: category,
       value: Math.round((data.percentages[index] || 0) * 10) / 10, // Round to 1 decimal
@@ -47,7 +47,7 @@ export const DelayShareChart = ({ data }: DelayShareChartProps) => {
   // Chart configuration for shadcn
   const chartConfig = data.categories.reduce((config, category, index) => {
     const key = category.toLowerCase().replace(/\s+/g, '-');
-    const color = category === 'Delayed' ? PRIMARY_BLUE : PRIMARY_BLUE_SOFT;
+    const color = category === 'Delayed' ? PRIMARY : PRIMARY_SOFT;
     config[key] = {
       label: category,
       color,

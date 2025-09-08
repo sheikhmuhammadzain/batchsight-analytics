@@ -44,11 +44,11 @@ export const LineMonthlyAverageDelayChart = ({ data }: LineMonthlyAverageDelayCh
 
   const uniqueLines = Object.keys(data.lines).map(key => parseInt(key)).sort((a, b) => a - b);
   const colors = [
-    'hsl(217.2193, 91.2195%, 59.8039%)',
-    'hsl(217.2193, 91.2195%, 66%)',
-    'hsl(217.2193, 91.2195%, 52%)',
-    'hsl(217.2193, 91.2195%, 74%)',
-    'hsl(217.2193, 91.2195%, 45%)',
+    'hsl(var(--primary))',
+    'hsl(var(--primary) / 0.85)',
+    'hsl(var(--primary) / 0.7)',
+    'hsl(var(--primary) / 0.55)',
+    'hsl(var(--primary) / 0.4)',
   ];
 
   // Create chart configuration for shadcn

@@ -48,7 +48,7 @@ export function CustomBarChart({
           <Bar 
             key={key}
             dataKey={key} 
-            fill={(config as any)[key]?.color || `var(--color-${key}, hsl(217.2193, 91.2195%, 59.8039%))`} 
+            fill={(config as any)[key]?.color || `var(--color-${key}, hsl(var(--primary)))`} 
             radius={4} 
           />
         ))}

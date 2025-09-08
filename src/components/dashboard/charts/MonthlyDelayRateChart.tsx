@@ -5,6 +5,7 @@ import { ChartInsightsModal } from "../ChartInsightsModal";
 import { MonthlyDelayRateData } from "@/services/api";
 import { CustomAreaChart } from "@/components/charts";
 import { ChartConfig } from "@/components/ui/chart";
+import { Link } from "react-router-dom";
 
 interface MonthlyDelayRateChartProps {
   data: MonthlyDelayRateData;
@@ -40,7 +41,7 @@ export const MonthlyDelayRateChart = ({ data }: MonthlyDelayRateChartProps) => {
   const chartConfig = {
     delay_rate: {
       label: "Delay Rate",
-      color: "hsl(217.2193, 91.2195%, 59.8039%)",
+      color: "hsl(var(--primary))",
     },
   } satisfies ChartConfig;
 
@@ -93,6 +94,10 @@ export const MonthlyDelayRateChart = ({ data }: MonthlyDelayRateChartProps) => {
             stacked={false}
             referenceLine={{ y: data.threshold, label: `${data.threshold}% Threshold` }}
           />
+          <div className="mt-3 text-xs text-muted-foreground">
+            See also:
+            <Link to="/production" className="ml-1 underline text-primary">Top Delay Formulas (Pareto Analysis)</Link>
+          </div>
         </CardContent>
       </Card>
 

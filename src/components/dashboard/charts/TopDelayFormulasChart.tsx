@@ -4,6 +4,7 @@ import { TopDelayFormulasData } from "@/services/api";
 import { InsightsButton } from "@/components/InsightsButton";
 import { useState } from "react";
 import { ChartInsightsModal, ChartInsight } from "../ChartInsightsModal";
+import { Link } from "react-router-dom";
 
 interface TopDelayFormulasChartProps {
   data: TopDelayFormulasData;
@@ -116,12 +117,16 @@ export const TopDelayFormulasChart = ({ data }: TopDelayFormulasChartProps) => {
             <Bar
               yAxisId="left"
               dataKey="delayRate"
-              fill="hsl(217.2193, 91.2195%, 59.8039%)"
+              fill="hsl(var(--primary))"
               name="Delay Rate %"
               radius={[2, 2, 0, 0]}
             />
           </ComposedChart>
         </ResponsiveContainer>
+        <div className="mt-3 text-xs text-muted-foreground">
+          See also:
+          <Link to="/trends" className="ml-1 underline text-primary">Monthly Delay Rate</Link>
+        </div>
       </CardContent>
     </Card>
     <ChartInsightsModal

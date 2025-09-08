@@ -31,7 +31,7 @@ export function CustomPieChart({
     fill:
       item.fill ||
       (config as any)[item.name]?.color ||
-      `var(--color-${item.name.toLowerCase().replace(/\s+/g, '-')}, hsl(217.2193, 91.2195%, 59.8039%))`
+      `var(--color-${item.name.toLowerCase().replace(/\s+/g, '-')}, hsl(var(--primary)))`
   }))
 
   return (
@@ -45,7 +45,7 @@ export function CustomPieChart({
           cy="50%"
           labelLine={false}
           outerRadius={80}
-          fill="hsl(217.2193, 91.2195%, 59.8039%)"
+          fill="hsl(var(--primary))"
           dataKey="value"
         >
           {dataWithColors.map((entry, index) => (

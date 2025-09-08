@@ -60,7 +60,7 @@ export function CustomLineChart({
         {referenceLine && (
           <ReferenceLine
             y={referenceLine.y}
-            stroke="hsl(217.2193, 91.2195%, 59.8039%)"
+            stroke="hsl(var(--primary))"
             strokeDasharray="5 5"
             label={{ value: referenceLine.label, position: "top" }}
           />
@@ -70,7 +70,7 @@ export function CustomLineChart({
             key={key}
             dataKey={key}
             type="monotone"
-            stroke={(config as any)[key]?.color || `var(--color-${key}, hsl(217.2193, 91.2195%, 59.8039%))`}
+            stroke={(config as any)[key]?.color || `var(--color-${key}, hsl(var(--primary)))`}
             strokeWidth={2}
             dot={false}
           />

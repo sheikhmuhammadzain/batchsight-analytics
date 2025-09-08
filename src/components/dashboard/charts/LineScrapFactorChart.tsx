@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChartInsightsModal } from "../ChartInsightsModal";
 import { InsightsButton } from "@/components/InsightsButton";
 import { LineScrapFactorData } from "@/services/api";
+import { Link } from "react-router-dom";
 
 interface LineScrapFactorChartProps {
   data: LineScrapFactorData;
@@ -103,14 +104,20 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
                 formatter={(value: number) => [`${(value * 100).toFixed(2)}%`, 'Scrap Factor']}
                 labelFormatter={(label: number) => `Line ${label}`}
               />
-              <ReferenceLine y={threshold} stroke="hsl(217.2193, 91.2195%, 59.8039%)" strokeDasharray="5 5" label={`${(threshold * 100).toFixed(0)}% Threshold`} />
+              <ReferenceLine y={threshold} stroke="hsl(var(--primary))" strokeDasharray="5 5" label={`${(threshold * 100).toFixed(0)}% Threshold`} />
               <Bar
                 dataKey="scrap_factor"
-                fill="hsl(217.2193, 91.2195%, 59.8039%)"
+                fill="hsl(var(--primary))"
                 radius={[2, 2, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-3 text-xs text-muted-foreground">
+            See also:
+            <Link to="/production" className="ml-1 underline text-primary">Top Delay Formulas (Pareto Analysis)</Link>
+            <span className="mx-1">•</span>
+            <Link to="/trends" className="underline text-primary">Monthly Delay Rate</Link>
+          </div>
         </CardContent>
       </Card>
 
