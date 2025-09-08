@@ -4,6 +4,7 @@ import { SectionCards } from "@/components/section-cards";
 import { ManufacturingChartsSection } from "@/components/dashboard/ManufacturingChartsSection";
 import { BatchTable } from "@/components/BatchTable";
 import batchTable from "@/data/batchTable.json";
+import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const Index = () => {
   return (
@@ -13,6 +14,7 @@ const Index = () => {
       <div className="px-4 lg:px-6">
         <ManufacturingChartsSection />
       </div>
+      <ChatbotWidget />
     </AppLayout>
   );
 };
