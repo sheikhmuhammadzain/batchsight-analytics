@@ -40,6 +40,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
 
   const avgScrapFactor = chartData.reduce((sum, item) => sum + item.scrap_factor, 0) / chartData.length;
   const maxScrapFactor = Math.max(...chartData.map(item => item.scrap_factor));
+  const yMax = Math.max(maxScrapFactor, threshold) * 1.1; // add 10% headroom so the threshold line is visible
   const highScrapLines = chartData.filter(item => item.scrap_factor > threshold).length;
   const insightType: 'negative' | 'warning' | 'positive' | 'info' =
     avgScrapFactor > 0.035 ? 'negative' : avgScrapFactor > 0.025 ? 'warning' : 'positive';
@@ -89,6 +90,7 @@ export const LineScrapFactorChart = ({ data }: LineScrapFactorChartProps) => {
               />
               <YAxis 
                 className="text-xs fill-muted-foreground"
+                domain={[0, yMax]}
                 label={{ value: 'Scrap Factor (%)', angle: -90, position: 'insideLeft' }}
                 tickFormatter={(value) => `${(value * 100).toFixed(1)}%`}
               />
