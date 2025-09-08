@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { DelayReasonsByLineData } from "@/services/api";
 import { useState } from "react";
 import { ChartInsightsModal, ChartInsight } from "../ChartInsightsModal";
 import { InsightsButton } from "@/components/InsightsButton";
+import { ChartTooltip, ChartTooltipContent, ChartContainer, ChartConfig } from "@/components/ui/chart";
 
 interface DelayReasonsByLineChartProps {
   data: DelayReasonsByLineData;
@@ -99,46 +100,57 @@ export const DelayReasonsByLineChart = ({ data }: DelayReasonsByLineChartProps) 
           <InsightsButton onClick={() => setShowInsights(true)} />
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="reason"
-                className="text-xs fill-muted-foreground"
-                angle={-45}
-                textAnchor="end"
-                height={100}
-                interval={0}
-              />
-              <YAxis
-                className="text-xs fill-muted-foreground"
-                label={{ value: 'Number of Incidents', angle: -90, position: 'insideLeft' }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid black',
-                  borderRadius: '6px',
-                  zIndex: 1000
-                }}
-                formatter={(value: number, name: string) => [
-                  value,
-                  name.replace('line_', 'Line ')
-                ]}
-              />
-              <Legend />
-              {lines.map((line, index) => (
-                <Bar
-                  key={line}
-                  dataKey={`line_${line}`}
-                  stackId="reasons"
-                  fill={lineColors[index % lineColors.length]}
-                  name={`Line ${line}`}
-                  radius={index === lines.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
-                />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
+          {/* Provide ChartContainer context so ChartTooltipContent can render */}
+          {(() => {
+            const chartConfig = lines.reduce((cfg, line, idx) => {
+              cfg[`line_${line}`] = {
+                label: `Line ${line}`,
+                color: lineColors[idx % lineColors.length],
+              };
+              return cfg;
+            }, {} as Record<string, any>) satisfies ChartConfig;
+
+            return (
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="reason"
+                    className="text-xs fill-muted-foreground"
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                    interval={0}
+                  />
+                  <YAxis
+                    className="text-xs fill-muted-foreground"
+                    label={{ value: 'Number of Incidents', angle: -90, position: 'insideLeft' }}
+                  />
+                  <ChartTooltip
+                    content={<ChartTooltipContent />}
+                    labelFormatter={(label: string) => label}
+                    formatter={(value: number, name: string) => {
+                      // Hide zero-value lines to reduce noise
+                      if (!value) return null
+                      return [Number(value), name.replace('line_', 'Line ')]
+                    }}
+                    itemSorter={(item: any) => -((item?.value ?? 0) as number)}
+                  />
+                  <Legend />
+                  {lines.map((line, index) => (
+                    <Bar
+                      key={line}
+                      dataKey={`line_${line}`}
+                      stackId="reasons"
+                      fill={lineColors[index % lineColors.length]}
+                      name={`Line ${line}`}
+                      radius={index === lines.length - 1 ? [2, 2, 0, 0] : [0, 0, 0, 0]}
+                    />
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            );
+          })()}
         </CardContent>
       </Card>
 

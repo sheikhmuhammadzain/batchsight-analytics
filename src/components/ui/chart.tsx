@@ -200,6 +200,7 @@ const ChartTooltipContent = React.forwardRef<
                 {formatter && item?.value !== undefined && item.name ? (
                   (() => {
                     const result = formatter(item.value, item.name, item, index, item.payload)
+                    if (result == null || result === false) return null
                     // Support Recharts array return: [value, name]
                     if (Array.isArray(result)) {
                       const [val, n] = result as any[]
