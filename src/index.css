@@ -213,6 +213,48 @@ All colors MUST be HSL.
     color: hsl(var(--foreground)) !important;
   }
 
+  /* Chat assistant HTML (tables) inside chat bubble */
+  .chat-html {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* Ensure wide tables scroll horizontally within the bubble */
+  .chat-html .prose table {
+    width: max-content; /* allow table to be wider than container */
+    table-layout: auto;
+    border-collapse: collapse;
+    margin: 0.25rem 0; /* reduce default prose table margins */
+  }
+
+  .chat-html .prose table,
+  .chat-html .prose th,
+  .chat-html .prose td {
+    border: 1px solid hsl(var(--border));
+  }
+
+  .chat-html .prose th,
+  .chat-html .prose td {
+    white-space: nowrap; /* avoid wrapping long headers/cells */
+    padding: 0.25rem 0.5rem; /* px-2 py-1 */
+    font-size: 0.8rem; /* text-sm-ish */
+    vertical-align: top;
+  }
+
+  /* Remove default margins inside table cells introduced by prose */
+  .chat-html .prose td p,
+  .chat-html .prose th p {
+    margin: 0;
+  }
+
+  .chat-html .prose thead th {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
   /* Keep wide tables under viewport with smooth horizontal scroll */
   .table-sticky-viewport {
     position: sticky;

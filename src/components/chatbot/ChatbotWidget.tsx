@@ -183,11 +183,13 @@ export function ChatbotWidget() {
                       )}
                     >
                       {m.role === "assistant" && m.html ? (
-                        <div
-                          className="prose prose-sm dark:prose-invert max-w-none"
-                          // NOTE: For production, sanitize with DOMPurify. Backend is local/trusted in dev.
-                          dangerouslySetInnerHTML={{ __html: m.html }}
-                        />
+                        <div className="chat-html max-w-full overflow-x-auto">
+                          <div
+                            className="prose prose-sm dark:prose-invert max-w-none min-w-fit"
+                            // NOTE: For production, sanitize with DOMPurify. Backend is local/trusted in dev.
+                            dangerouslySetInnerHTML={{ __html: m.html }}
+                          />
+                        </div>
                       ) : (
                         m.content
                       )}
