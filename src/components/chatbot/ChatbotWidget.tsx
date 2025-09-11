@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn, randomId } from "@/lib/utils";
 import { MessageCircle, X, Send } from "lucide-react";
+import { API_BASE_URL } from "@/services/api";
 
 export type ChatMessage = {
   id: string;
@@ -76,10 +77,34 @@ export function ChatbotWidget() {
         temperature: "0.7",
       });
 
-      // Use Vite dev proxy to avoid CORS: see vite.config.ts (/data-api -> 127.0.0.1:8000)
-      const resp = await fetch(`/data-api/query?${params.toString()}`,
-        { headers: { accept: "application/json, text/html;q=0.9, */*;q=0.8" } }
-      );
+      // Use Vite dev proxy in development; absolute API base in production/preview
+      const basePrimary = import.meta.env.DEV ? "/data-api" : API_BASE_URL;
+      const baseFallback = import.meta.env.DEV ? API_BASE_URL : "/data-api";
+
+      const makeReq = async (baseUrl: string) => {
+        const url = `${baseUrl}/query?${params.toString()}`;
+        try {
+          const r = await fetch(url, { headers: { accept: "application/json, text/html;q=0.9, */*;q=0.8" } });
+          return r;
+        } catch (e) {
+          console.warn("Chatbot request failed:", url, e);
+          throw e;
+        }
+      };
+
+      let resp: Response;
+      try {
+        resp = await makeReq(basePrimary);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      } catch (e) {
+        // Fallback attempt (helps when preview lacks proxy or CORS is configured differently)
+        try {
+          resp = await makeReq(baseFallback);
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        } catch (e2) {
+          throw e2;
+        }
+      }
 
       if (!resp.ok) {
         throw new Error(`HTTP ${resp.status}`);
@@ -120,13 +145,14 @@ export function ChatbotWidget() {
       }
 
       // Replace the typing indicator with the real reply (keep both text and html)
-      setMessages((prev) => prev.map(m => m.id === typingId ? ({ ...m, content: assistantText, html: assistantHtml }) : m));
+      setMessages((prev) => prev.map(m => m.id === typingId ? ({ ...m, content: assistantText || "(empty response)", html: assistantHtml }) : m));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      setMessages((prev) => [
-        ...prev,
-        { id: randomId(), role: "assistant", content: `Failed to fetch analysis: ${message}` },
-      ]);
+      // Replace typing indicator with error text for clearer UX
+      setMessages((prev) => prev.map(m => m.content === "Analyzing your request…"
+        ? { ...m, content: `Failed to fetch analysis: ${message}` }
+        : m
+      ));
     } finally {
       setLoading(false);
     }
