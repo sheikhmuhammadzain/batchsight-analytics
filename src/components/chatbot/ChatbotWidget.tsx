@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, randomId } from "@/lib/utils";
 import { MessageCircle, X, Send } from "lucide-react";
 
 export type ChatMessage = {
@@ -24,7 +24,7 @@ export function ChatbotWidget() {
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<ChatMessage[]>([
-    { id: crypto.randomUUID(), role: "assistant", content: demoAssistantGreeting },
+    { id: randomId(), role: "assistant", content: demoAssistantGreeting },
   ]);
   const [loading, setLoading] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export function ChatbotWidget() {
     if (!trimmed) return;
 
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: randomId(),
       role: "user",
       content: trimmed,
     };
@@ -64,7 +64,7 @@ export function ChatbotWidget() {
     try {
       setLoading(true);
       // Optional: show a temporary typing indicator
-      const typingId = crypto.randomUUID();
+      const typingId = randomId();
       setMessages((prev) => [
         ...prev,
         { id: typingId, role: "assistant", content: "Analyzing your request…" },
@@ -125,7 +125,7 @@ export function ChatbotWidget() {
       const message = err instanceof Error ? err.message : String(err);
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: `Failed to fetch analysis: ${message}` },
+        { id: randomId(), role: "assistant", content: `Failed to fetch analysis: ${message}` },
       ]);
     } finally {
       setLoading(false);
@@ -234,3 +234,4 @@ export function ChatbotWidget() {
 }
 
 export default ChatbotWidget;
+

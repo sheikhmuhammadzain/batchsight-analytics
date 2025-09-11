@@ -1,5 +1,5 @@
 // API service for batch processing data
-const API_BASE_URL = 'https://data-analysis-fawn.vercel.app';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // API Response Interfaces
 export interface RootResponse {
