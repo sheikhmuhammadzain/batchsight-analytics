@@ -6,48 +6,136 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn, randomId } from "@/lib/utils";
-import { MessageCircle, X, Send } from "lucide-react";
-import { API_BASE_URL } from "@/services/api";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { 
+  MessageCircle, 
+  X, 
+  Send, 
+  ChevronDown, 
+  ChevronRight,
+  Code2,
+  BarChart3,
+  FileText,
+  AlertCircle,
+  Loader2,
+  Upload,
+  CheckCircle2
+} from "lucide-react";
 
 export type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
   time?: string;
-  html?: string; // optional rich HTML for assistant messages
+  data?: {
+    summary?: string;
+    code?: string;
+    figure?: string;
+    result?: any;
+    error?: string;
+    executionTime?: number;
+  };
 };
 
-const demoAssistantGreeting =
-  "Hi! I\'m your BatchSight Assistant. Ask me about delays, scrap factor, monthly trends, or line performance.";
+function randomId() {
+  return Math.random().toString(36).substring(2, 9);
+}
 
-export function ChatbotWidget() {
+export function ChatbotWidget () {
   const [open, setOpen] = React.useState(false);
   const [input, setInput] = React.useState("");
   const [messages, setMessages] = React.useState<ChatMessage[]>([
-    { id: randomId(), role: "assistant", content: demoAssistantGreeting },
+    { 
+      id: randomId(), 
+      role: "assistant", 
+      content: "Hi! I'm your Alarm Analytics Assistant. Upload your CSV data and ask me anything about alarm patterns, trends, or anomalies." 
+    },
   ]);
   const [loading, setLoading] = React.useState(false);
+  const [dataLoaded, setDataLoaded] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const examplePrompts = [
-    "What is the delay rate this month?",
-    "Which line has the highest average delay?",
-    "Show top delay reasons this quarter.",
-    "How does scrap factor trend by line?",
+    "Top 10 FORMULA_ID by count of WIP_BATCH_ID",
+    "Top 10 FORMULA_ID by average SCRAP_FACTOR",
+    "Histogram of PLAN_QTY (bins=30)",
+    "Monthly sum of WIP_QTY by WIP_PERIOD_NAME",
+    "Top 10 LINE_NO by total WIP_QTY",
+    "Counts of TRANSACTION_TYPE_NAME",
+    "Top 10 INVENTORY_ITEM_ID by total PLAN_QTY",
+    "Distribution of SCRAP_FACTOR",
+    "Top 5 PLAN_QTY",
+    "Rows with WIP_BATCH_STATUS == 'Closed' sorted by WIP_VALUE desc (show top 10)",
   ];
 
   React.useEffect(() => {
+    checkDataStatus();
+  }, []);
+
+  React.useEffect(() => {
     if (open) {
-      // Scroll to bottom when the widget opens or messages change
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
   }, [open, messages.length]);
 
-  function handleSend(e?: React.FormEvent) {
+  async function checkDataStatus() {
+    try {
+      const response = await fetch("http://localhost:8000/api/status");
+      const data = await response.json();
+      setDataLoaded(data.data_loaded);
+    } catch (error) {
+      console.error("Failed to check status:", error);
+    }
+  }
+
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadProgress(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/upload-data", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setDataLoaded(true);
+        setMessages(prev => [...prev, {
+          id: randomId(),
+          role: "assistant",
+          content: `✅ Data loaded successfully! ${data.stats.rows} rows with ${data.stats.total_alarms} alarms detected. Ask me anything about your data.`
+        }]);
+      }
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        id: randomId(),
+        role: "assistant",
+        content: "❌ Failed to upload file. Please try again."
+      }]);
+    } finally {
+      setUploadProgress(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }
+
+  async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || !dataLoaded) return;
 
     const userMessage: ChatMessage = {
       id: randomId(),
@@ -55,103 +143,64 @@ export function ChatbotWidget() {
       content: trimmed,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
-    // Send the query to local data-analysis backend
-    void sendToAssistant(trimmed);
+    await sendToAssistant(trimmed);
   }
 
   async function sendToAssistant(query: string) {
-    try {
-      setLoading(true);
-      // Optional: show a temporary typing indicator
-      const typingId = randomId();
-      setMessages((prev) => [
-        ...prev,
-        { id: typingId, role: "assistant", content: "Analyzing your request…" },
-      ]);
+    setLoading(true);
+    const typingId = randomId();
+    
+    setMessages(prev => [...prev, {
+      id: typingId,
+      role: "assistant",
+      content: "Analyzing your request..."
+    }]);
 
-      const params = new URLSearchParams({
-        q: query,
-        max_tokens: "1000",
-        temperature: "0.7",
+    try {
+      const response = await fetch("http://localhost:8000/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: query,
+          include_code: true,
+          include_visualization: true,
+        }),
       });
 
-      // Use Vite dev proxy in development; absolute API base in production/preview
-      const basePrimary = import.meta.env.DEV ? "/data-api" : API_BASE_URL;
-      const baseFallback = import.meta.env.DEV ? API_BASE_URL : "/data-api";
-
-      const makeReq = async (baseUrl: string) => {
-        const url = `${baseUrl}/query?${params.toString()}`;
-        try {
-          const r = await fetch(url, { headers: { accept: "application/json, text/html;q=0.9, */*;q=0.8" } });
-          return r;
-        } catch (e) {
-          console.warn("Chatbot request failed:", url, e);
-          throw e;
-        }
-      };
-
-      let resp: Response;
-      try {
-        resp = await makeReq(basePrimary);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      } catch (e) {
-        // Fallback attempt (helps when preview lacks proxy or CORS is configured differently)
-        try {
-          resp = await makeReq(baseFallback);
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        } catch (e2) {
-          throw e2;
-        }
-      }
-
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}`);
-      }
-
-      // Decide how to parse based on response content type
-      const ct = resp.headers.get("content-type") || "";
-      let assistantText = "";
-      let assistantHtml = "";
+      const data = await response.json();
       
-      if (ct.includes("application/json")) {
-        // API returned JSON with an HTML payload under `result`
-        const data: any = await resp.json();
-        const raw = typeof data?.result === "string" ? data.result : JSON.stringify(data, null, 2);
-        try {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(raw, "text/html");
-          assistantHtml = (doc.body as HTMLElement)?.innerHTML || raw;
-          assistantText = (doc.body?.textContent || raw).trim();
-        } catch {
-          assistantHtml = raw;
-          assistantText = raw;
-        }
-      } else {
-        // Treat as HTML response
-        const html = await resp.text();
-        try {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-          const resultEl = doc.querySelector(".result") || doc.body;
-          assistantText = (resultEl?.textContent || html).trim();
-          assistantHtml = (resultEl as HTMLElement)?.innerHTML || doc.body.innerHTML || html;
-        } catch {
-          // Fallback to raw HTML text content if DOMParser fails
-          assistantText = html;
-          assistantHtml = html;
-        }
-      }
+      if (data.success && data.answer) {
+        const assistantMessage: ChatMessage = {
+          id: randomId(),
+          role: "assistant",
+          content: data.answer.summary || "Analysis complete. See details below.",
+          data: {
+            summary: data.answer.summary,
+            code: data.answer.code,
+            figure: data.answer.execution?.figure,
+            result: data.answer.execution?.result,
+            error: data.answer.execution?.error,
+            executionTime: data.execution_time
+          }
+        };
 
-      // Replace the typing indicator with the real reply (keep both text and html)
-      setMessages((prev) => prev.map(m => m.id === typingId ? ({ ...m, content: assistantText || "(empty response)", html: assistantHtml }) : m));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      // Replace typing indicator with error text for clearer UX
-      setMessages((prev) => prev.map(m => m.content === "Analyzing your request…"
-        ? { ...m, content: `Failed to fetch analysis: ${message}` }
-        : m
+        setMessages(prev => prev.filter(m => m.id !== typingId).concat(assistantMessage));
+      } else {
+        setMessages(prev => prev.map(m => 
+          m.id === typingId 
+            ? { ...m, content: `❌ ${data.error || "Failed to analyze request"}` }
+            : m
+        ));
+      }
+    } catch (error) {
+      setMessages(prev => prev.map(m => 
+        m.id === typingId 
+          ? { ...m, content: "❌ Connection error. Please check if the API is running." }
+          : m
       ));
     } finally {
       setLoading(false);
@@ -163,9 +212,8 @@ export function ChatbotWidget() {
       {/* Floating Bubble */}
       <div className="fixed bottom-6 right-6 z-50">
         <Button
-          className="h-14 w-14 rounded-full shadow-lg md:hover:scale-105 transition-transform"
-          onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Close chat" : "Open chat"}
+          className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+          onClick={() => setOpen(!open)}
         >
           {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-6 w-6" />}
         </Button>
@@ -173,83 +221,153 @@ export function ChatbotWidget() {
 
       {/* Chat Panel */}
       {open && (
-        <div className="fixed bottom-[88px] right-6 z-50 w-[92vw] max-w-[380px] md:max-w-[480px]">
-          {/* Fixed height so the outer container can scroll */}
-          <Card className="border shadow-xl flex flex-col h-[70vh] md:h-[75vh]">
+        <div className="fixed bottom-24 right-6 z-50 w-[95vw] max-w-[480px]">
+          <Card className="border shadow-2xl flex flex-col h-[80vh] bg-background/95 backdrop-blur">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/40 flex-none">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>BA</AvatarFallback>
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9 border-2 border-blue-200">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white">
+                    AI
+                  </AvatarFallback>
                 </Avatar>
-                <div className="leading-tight">
-                  <div className="text-sm font-medium">BatchSight Assistant</div>
+                <div>
+                  <div className="text-sm font-semibold">Alarm Analytics Agent</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
-                    Connected to Data Analysis API
+                    {dataLoaded ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3 text-green-500" />
+                        <span>Data loaded</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="h-3 w-3 text-amber-500" />
+                        <span>No data loaded</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setOpen(false)}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 hover:bg-white/50" 
+                onClick={() => setOpen(false)}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
 
-            {/* Messages (outer scroll) */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="px-3 py-4 space-y-3">
-                {messages.map((m) => (
-                  <div key={m.id} className={cn("flex w-full", m.role === "user" ? "justify-end" : "justify-start")}> 
+            {/* Messages Area */}
+            <ScrollArea className="flex-1">
+              <div className="px-4 py-4 space-y-4">
+                {/* Upload Section if no data */}
+                {!dataLoaded && (
+                  <Card className="p-4 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Upload className="h-4 w-4 text-amber-600" />
+                      <span className="text-sm font-medium">Upload CSV Data</span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadProgress}
+                    >
+                      {uploadProgress ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        "Choose CSV File"
+                      )}
+                    </Button>
+                  </Card>
+                )}
+
+                {/* Messages */}
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex w-full",
+                      msg.role === "user" ? "justify-end" : "justify-start"
+                    )}
+                  >
                     <div
                       className={cn(
-                        "max-w-[85%] rounded-2xl px-3 py-2 text-sm break-words shadow-sm",
-                        m.role === "user"
-                          ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                          : "bg-card text-card-foreground border border-border"
+                        "max-w-[85%] rounded-2xl shadow-sm",
+                        msg.role === "user"
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2"
+                          : "bg-card border"
                       )}
                     >
-                      {m.role === "assistant" && m.html ? (
-                        <div className="chat-html max-w-full overflow-x-auto">
-                          <div
-                            className="prose prose-sm dark:prose-invert max-w-none min-w-fit"
-                            // NOTE: For production, sanitize with DOMPurify. Backend is local/trusted in dev.
-                            dangerouslySetInnerHTML={{ __html: m.html }}
-                          />
-                        </div>
+                      {msg.role === "assistant" && msg.data ? (
+                        <AssistantMessage message={msg} />
                       ) : (
-                        m.content
+                        <div className={cn(
+                          "text-sm",
+                          msg.role === "user" ? "" : "px-4 py-2"
+                        )}>
+                          {msg.content}
+                        </div>
                       )}
                     </div>
                   </div>
                 ))}
                 <div ref={bottomRef} />
               </div>
-            </div>
+            </ScrollArea>
 
-            {/* Suggested prompts */}
-            <div className="px-3 pb-2 flex flex-wrap gap-2 border-t bg-background/70 flex-none">
-              {examplePrompts.map((p) => (
-                <Badge
-                  key={p}
-                  variant="secondary"
-                  className="cursor-pointer"
-                  onClick={() => setInput(p)}
-                >
-                  {p}
-                </Badge>
-              ))}
-            </div>
+            {/* Example Prompts */}
+            {dataLoaded && (
+              <div className="px-3 py-2 border-t bg-muted/30">
+                <ScrollArea className="w-full" orientation="horizontal">
+                  <div className="flex gap-2 pb-1">
+                    {examplePrompts.map((prompt) => (
+                      <Badge
+                        key={prompt}
+                        variant="secondary"
+                        className="cursor-pointer whitespace-nowrap hover:bg-secondary/80"
+                        onClick={() => setInput(prompt)}
+                      >
+                        {prompt}
+                      </Badge>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
 
             {/* Input */}
-            <form onSubmit={handleSend} className="flex items-center gap-2 p-3 flex-none">
+            <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about delays, scrap, or trends…"
+                placeholder={dataLoaded ? "Ask about alarms, trends, patterns..." : "Upload data first"}
                 className="flex-1"
+                disabled={!dataLoaded || loading}
               />
-              <Button type="submit" disabled={!input.trim() || loading} size="icon" aria-label="Send message">
-                <Send className="h-4 w-4" />
+              <Button 
+                type="submit" 
+                disabled={!input.trim() || loading || !dataLoaded} 
+                size="icon"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+              >
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </form>
           </Card>
@@ -259,5 +377,199 @@ export function ChatbotWidget() {
   );
 }
 
-export default ChatbotWidget;
+// Component for formatted assistant messages
+function AssistantMessage({ message }: { message: ChatMessage }) {
+  const { data } = message;
+  const [expandedSections, setExpandedSections] = React.useState({
+    summary: true,
+    visualization: true,
+    result: false,
+    code: false,
+  });
 
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  if (!data) return <div className="px-4 py-2 text-sm">{message.content}</div>;
+
+  return (
+    <div className="overflow-hidden rounded-2xl">
+      {/* Summary */}
+      {data.summary && (
+        <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-b">
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
+            <div className="text-sm text-foreground/90 leading-relaxed w-full">
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {data.summary}
+                </ReactMarkdown>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error */}
+      {data.error && (
+        <div className="px-4 py-3 bg-red-50 dark:bg-red-950/30 border-b border-red-200 dark:border-red-800">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+            <div className="text-sm text-red-800 dark:text-red-200">
+              {data.error}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visualization */}
+      {data.figure && (
+        <Collapsible open={expandedSections.visualization}>
+          <CollapsibleTrigger
+            onClick={() => toggleSection("visualization")}
+            className="flex items-center gap-2 px-4 py-2 w-full hover:bg-muted/50 transition-colors border-b"
+          >
+            <BarChart3 className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium">Visualization</span>
+            {expandedSections.visualization ? (
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            ) : (
+              <ChevronRight className="h-4 w-4 ml-auto" />
+            )}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-3 bg-white dark:bg-gray-950">
+              <img
+                src={`data:image/png;base64,${data.figure}`}
+                alt="Analysis visualization"
+                className="w-full rounded-lg shadow-sm"
+              />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Result Data */}
+      {data.result && (
+        <Collapsible open={expandedSections.result}>
+          <CollapsibleTrigger
+            onClick={() => toggleSection("result")}
+            className="flex items-center gap-2 px-4 py-2 w-full hover:bg-muted/50 transition-colors border-b"
+          >
+            <FileText className="h-4 w-4 text-purple-600" />
+            <span className="text-sm font-medium">
+              Result Data
+              {data.result.type === "dataframe" && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({data.result.shape?.[0]} rows)
+                </span>
+              )}
+            </span>
+            {expandedSections.result ? (
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            ) : (
+              <ChevronRight className="h-4 w-4 ml-auto" />
+            )}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="p-3 bg-muted/30">
+              <ResultDisplay result={data.result} />
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Code */}
+      {data.code && (
+        <Collapsible open={expandedSections.code}>
+          <CollapsibleTrigger
+            onClick={() => toggleSection("code")}
+            className="flex items-center gap-2 px-4 py-2 w-full hover:bg-muted/50 transition-colors border-b"
+          >
+            <Code2 className="h-4 w-4 text-orange-600" />
+            <span className="text-sm font-medium">Generated Code</span>
+            {expandedSections.code ? (
+              <ChevronDown className="h-4 w-4 ml-auto" />
+            ) : (
+              <ChevronRight className="h-4 w-4 ml-auto" />
+            )}
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <ScrollArea className="h-[200px]">
+              <pre className="p-3 text-xs bg-gray-950 text-gray-100">
+                <code>{data.code}</code>
+              </pre>
+            </ScrollArea>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
+
+      {/* Execution Time */}
+      {data.executionTime && (
+        <div className="px-4 py-2 text-xs text-muted-foreground bg-muted/20">
+          ⚡ Executed in {data.executionTime.toFixed(2)}s
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Result display component
+function ResultDisplay({ result }: { result: any }) {
+  if (!result) return null;
+
+  if (result.type === "dataframe") {
+    return (
+      <ScrollArea className="w-full h-[200px]">
+        <table className="w-full text-xs">
+          <thead className="bg-muted sticky top-0">
+            <tr>
+              {result.columns?.map((col: string) => (
+                <th key={col} className="px-2 py-1 text-left font-medium border">
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {result.data?.slice(0, 10).map((row: any, idx: number) => (
+              <tr key={idx} className="hover:bg-muted/50">
+                {result.columns?.map((col: string) => (
+                  <td key={col} className="px-2 py-1 border text-xs">
+                    {JSON.stringify(row[col])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {result.data?.length > 10 && (
+          <div className="text-xs text-muted-foreground p-2">
+            Showing 10 of {result.data.length} rows
+          </div>
+        )}
+      </ScrollArea>
+    );
+  }
+
+  if (result.type === "series") {
+    return (
+      <ScrollArea className="h-[150px]">
+        <pre className="text-xs">{JSON.stringify(result.data, null, 2)}</pre>
+      </ScrollArea>
+    );
+  }
+
+  if (result.type === "value") {
+    return (
+      <div className="p-3 bg-background rounded-lg border">
+        <div className="text-lg font-semibold">{JSON.stringify(result.data)}</div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export default ChatbotWidget;

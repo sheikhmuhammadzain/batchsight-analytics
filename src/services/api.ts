@@ -1,5 +1,5 @@
 // API service for batch processing data
-export const API_BASE_URL = 'http://103.18.20.205:8080';
+export const API_BASE_URL = 'http://103.18.20.205:8083';
 
 // API Response Interfaces
 export interface RootResponse {
