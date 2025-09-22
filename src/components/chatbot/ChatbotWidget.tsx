@@ -7,11 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { 
   MessageCircle, 
   X, 
@@ -24,7 +26,9 @@ import {
   AlertCircle,
   Loader2,
   Upload,
-  CheckCircle2
+  CheckCircle2,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 
 export type ChatMessage = {
@@ -61,12 +65,11 @@ export function ChatbotWidget () {
   const [uploadProgress, setUploadProgress] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [expanded, setExpanded] = React.useState(false);
 
   const examplePrompts = [
     "Top 10 FORMULA_ID by count of WIP_BATCH_ID",
     "Top 10 FORMULA_ID by average SCRAP_FACTOR",
-    "Histogram of PLAN_QTY (bins=30)",
-    "Monthly sum of WIP_QTY by WIP_PERIOD_NAME",
     "Top 10 LINE_NO by total WIP_QTY",
     "Counts of TRANSACTION_TYPE_NAME",
     "Top 10 INVENTORY_ITEM_ID by total PLAN_QTY",
@@ -87,7 +90,7 @@ export function ChatbotWidget () {
 
   async function checkDataStatus() {
     try {
-      const response = await fetch("http://localhost:8000/api/status");
+      const response = await fetch("http://103.18.20.205:8084/api/status");
       const data = await response.json();
       setDataLoaded(data.data_loaded);
     } catch (error) {
@@ -104,7 +107,7 @@ export function ChatbotWidget () {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/api/upload-data", {
+      const response = await fetch("http://103.18.20.205:8084/api/upload-data", {
         method: "POST",
         body: formData,
       });
@@ -159,7 +162,7 @@ export function ChatbotWidget () {
     }]);
 
     try {
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch("http://103.18.20.205:8084/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -221,8 +224,14 @@ export function ChatbotWidget () {
 
       {/* Chat Panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-[95vw] max-w-[480px]">
-          <Card className="border shadow-2xl flex flex-col h-[80vh] bg-background/95 backdrop-blur">
+        <div className={cn(
+          "fixed right-6 z-50",
+          expanded ? "bottom-6 w-[96vw] max-w-[1100px]" : "bottom-24 w-[95vw] max-w-[480px]"
+        )}>
+          <Card className={cn(
+            "border shadow-2xl flex flex-col bg-background/95 backdrop-blur",
+            expanded ? "h-[90vh]" : "h-[80vh]"
+          )}>
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
               <div className="flex items-center gap-3">
@@ -248,19 +257,31 @@ export function ChatbotWidget () {
                   </div>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 hover:bg-white/50" 
-                onClick={() => setOpen(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-white/50"
+                  onClick={() => setExpanded(v => !v)}
+                  aria-label={expanded ? "Minimize" : "Expand"}
+                >
+                  {expanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 hover:bg-white/50" 
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Messages Area */}
             <ScrollArea className="flex-1">
-              <div className="px-4 py-4 space-y-4">
+              <div className="px-4 py-4 space-y-4 overflow-x-auto">
                 {/* Upload Section if no data */}
                 {!dataLoaded && (
                   <Card className="p-4 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
@@ -332,18 +353,19 @@ export function ChatbotWidget () {
             {dataLoaded && (
               <div className="px-3 py-2 border-t bg-muted/30">
                 <ScrollArea className="w-full" orientation="horizontal">
-                  <div className="flex gap-2 pb-1">
+                  <div className="flex gap-2 pb-1 flex-nowrap w-max touch-pan-x">
                     {examplePrompts.map((prompt) => (
                       <Badge
                         key={prompt}
                         variant="secondary"
-                        className="cursor-pointer whitespace-nowrap hover:bg-secondary/80"
+                        className="cursor-pointer whitespace-nowrap hover:bg-secondary/80 shrink-0"
                         onClick={() => setInput(prompt)}
                       >
                         {prompt}
                       </Badge>
                     ))}
                   </div>
+                  <ScrollBar orientation="horizontal" />
                 </ScrollArea>
               </div>
             )}
@@ -386,6 +408,61 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
     result: false,
     code: false,
   });
+  const [imgError, setImgError] = React.useState(false);
+  const seriesData = React.useMemo(() => {
+    if (data?.result?.type === "series" && data?.result?.data && typeof data.result.data === "object") {
+      return Object.entries<any>(data.result.data).map(([name, value]) => ({
+        name: String(name),
+        value: Number(value),
+      }));
+    }
+    return [] as Array<{ name: string; value: number }>;
+  }, [data?.result]);
+
+  // Attempt to derive a simple {name,value} dataset from a dataframe
+  const dfBarData = React.useMemo(() => {
+    if (data?.result?.type !== "dataframe" || !Array.isArray(data?.result?.data)) return [] as Array<{name:string; value:number}>;
+    const columns: string[] = Array.isArray(data?.result?.columns) ? data.result.columns : [];
+    if (!columns.length) return [];
+    // Heuristic: pick first column as name, first numeric column as value (not equal to name)
+    const nameCol = columns[0];
+    let valueCol = columns.find((c) => c !== nameCol && data.result.data.some((row: any) => typeof row?.[c] === "number"));
+    if (!valueCol) valueCol = columns.find((c) => c !== nameCol) || nameCol;
+    return data.result.data.slice(0, 20).map((row: any) => ({
+      name: String(row?.[nameCol]),
+      value: Number(row?.[valueCol]),
+    })).filter(d => Number.isFinite(d.value));
+  }, [data?.result]);
+
+  const chartData = seriesData.length ? seriesData : dfBarData;
+
+  // Force Recharts to compute sizes when the collapsible opens or data changes
+  React.useEffect(() => {
+    if (expandedSections.visualization) {
+      const id = setTimeout(() => {
+        try { window.dispatchEvent(new Event("resize")); } catch {}
+      }, 60);
+      return () => clearTimeout(id);
+    }
+  }, [expandedSections.visualization, chartData.length]);
+
+  // Build a reliable image source from base64; fall back to data URL if Blob creation fails
+  const imageSrc = React.useMemo(() => {
+    try {
+      const b64 = (data?.figure || "").replace(/^data:image\/(png|jpeg);base64,/i, "").replace(/\s+/g, "");
+      if (!b64) return "";
+      // Convert base64 to Blob
+      const byteString = atob(b64);
+      const len = byteString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = byteString.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "image/png" });
+      return URL.createObjectURL(blob);
+    } catch {
+      // Fallback to data URL
+      return data?.figure ? `data:image/png;base64,${(data.figure || "").replace(/^data:image\/(png|jpeg);base64,/i, "").replace(/\s+/g, "")}` : "";
+    }
+  }, [data?.figure]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -394,7 +471,7 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
   if (!data) return <div className="px-4 py-2 text-sm">{message.content}</div>;
 
   return (
-    <div className="overflow-hidden rounded-2xl">
+    <div className="rounded-2xl">
       {/* Summary */}
       {data.summary && (
         <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-b">
@@ -438,13 +515,38 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
               <ChevronRight className="h-4 w-4 ml-auto" />
             )}
           </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="p-3 bg-white dark:bg-gray-950">
-              <img
-                src={`data:image/png;base64,${data.figure}`}
-                alt="Analysis visualization"
-                className="w-full rounded-lg shadow-sm"
-              />
+          <CollapsibleContent forceMount>
+            <div className="p-3 bg-white dark:bg-gray-950 overflow-auto rounded-lg">
+              {chartData.length > 0 ? (
+                <div className="w-full" style={{ minWidth: Math.max(600, chartData.length * 90) }}>
+                  <ChartContainer
+                    config={{ value: { label: "Value", color: "hsl(var(--primary))" } }}
+                    className="w-full h-[340px]"
+                  >
+                    <BarChart data={chartData} margin={{ top: 10, right: 20, bottom: 60, left: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" angle={-30} textAnchor="end" interval={0} height={60} tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" fill="var(--color-value)" />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              ) : !imgError && imageSrc ? (
+                <img
+                  src={imageSrc}
+                  alt="Analysis visualization"
+                  className="block rounded-lg shadow-sm max-w-full h-auto"
+                  loading="lazy"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <div className="text-xs text-muted-foreground">
+                  Unable to render chart image. {imageSrc && (
+                    <a className="underline" href={imageSrc} target="_blank" rel="noreferrer">Open in new tab</a>
+                  )}
+                </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -497,7 +599,7 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <ScrollArea className="h-[200px]">
-              <pre className="p-3 text-xs bg-gray-950 text-gray-100">
+              <pre className="p-3 text-xs bg-gray-950 text-gray-100 overflow-x-auto">
                 <code>{data.code}</code>
               </pre>
             </ScrollArea>
@@ -521,8 +623,8 @@ function ResultDisplay({ result }: { result: any }) {
 
   if (result.type === "dataframe") {
     return (
-      <ScrollArea className="w-full h-[200px]">
-        <table className="w-full text-xs">
+      <div className="w-full h-[200px] overflow-auto">
+        <table className="w-max min-w-full text-xs">
           <thead className="bg-muted sticky top-0">
             <tr>
               {result.columns?.map((col: string) => (
@@ -549,14 +651,14 @@ function ResultDisplay({ result }: { result: any }) {
             Showing 10 of {result.data.length} rows
           </div>
         )}
-      </ScrollArea>
+      </div>
     );
   }
 
   if (result.type === "series") {
     return (
       <ScrollArea className="h-[150px]">
-        <pre className="text-xs">{JSON.stringify(result.data, null, 2)}</pre>
+        <pre className="text-xs overflow-x-auto">{JSON.stringify(result.data, null, 2)}</pre>
       </ScrollArea>
     );
   }
