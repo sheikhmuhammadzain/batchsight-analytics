@@ -1,3 +1,4 @@
+import React from "react";
 import { ProcessingDaysHistogram } from "./charts/ProcessingDaysHistogram";
 import { DelayShareChart } from "./charts/DelayShareChart";
 import { MonthlyDelayChart } from "./charts/MonthlyDelayChart";
@@ -11,6 +12,9 @@ import { MonthlyDelayRateChart } from "./charts/MonthlyDelayRateChart";
 import { DelayReasonsByLineChart } from "./charts/DelayReasonsByLineChart";
 import { TopDelayReasonsChart } from "./charts/TopDelayReasonsChart";
 import { useManufacturingData } from "@/hooks/useManufacturingData";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { apiService } from "@/services/api";
 
 export const ManufacturingChartsSection = () => {
   const {
@@ -28,7 +32,17 @@ export const ManufacturingChartsSection = () => {
     processingDaysHistogram,
     isLoading,
     error,
+    refetch,
   } = useManufacturingData();
+
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    apiService.clearCache();
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   if (isLoading) {
     return (
@@ -51,6 +65,22 @@ export const ManufacturingChartsSection = () => {
 
   return (
     <div className="space-y-10">
+      {/* Header with Refresh Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">Manufacturing Analytics</h2>
+          <p className="text-sm text-muted-foreground mt-1">Real-time insights from production data</p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={isRefreshing || isLoading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
       {/* First row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="space-y-4 chart-card min-h-[420px]">

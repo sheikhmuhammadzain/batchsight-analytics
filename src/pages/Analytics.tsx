@@ -5,6 +5,9 @@ import { DelayShareChart } from "@/components/dashboard/charts/DelayShareChart";
 import { MonthlyDelayChart } from "@/components/dashboard/charts/MonthlyDelayChart";
 import { DelayedVsTotalBatchesChart } from "@/components/dashboard/charts/DelayedVsTotalBatchesChart";
 import { TopDelayReasonsChart } from "@/components/dashboard/charts/TopDelayReasonsChart";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { apiService } from "@/services/api";
 
 const Analytics: React.FC = () => {
   const {
@@ -14,16 +17,37 @@ const Analytics: React.FC = () => {
     topDelayReasons,
     isLoading,
     error,
+    refetch,
   } = useManufacturingData();
+
+  const [isRefreshing, setIsRefreshing] = React.useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    apiService.clearCache();
+    await refetch();
+    setIsRefreshing(false);
+  };
 
   return (
     <AppLayout>
       <div className="px-4 lg:px-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Analytics</h1>
-          <p className="text-muted-foreground mt-2">
-            Live KPIs and insights driven by Berger production data.
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Analytics</h1>
+            <p className="text-muted-foreground mt-2">
+              Live KPIs and insights driven by Berger production data.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing || isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
 
         {isLoading ? (

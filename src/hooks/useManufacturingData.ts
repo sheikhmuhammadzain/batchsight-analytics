@@ -76,6 +76,7 @@ export const useManufacturingData = () => {
     const {
     data: delayShare,
     isLoading: isDelayShareLoading,
+    refetch: refetchDelayShare
   } = useQuery({
     queryKey: ['delayShare'],
     queryFn: () => apiService.getDelayShare(),
@@ -85,6 +86,7 @@ export const useManufacturingData = () => {
     const {
     data: monthlyAverageDelay,
     isLoading: isMonthlyDelayLoading,
+    refetch: refetchMonthlyAverageDelay
   } = useQuery({
     queryKey: ['monthlyAverageDelay'],
     queryFn: () => apiService.getMonthlyAverageDelay(),
@@ -121,6 +123,7 @@ export const useManufacturingData = () => {
   const {
     data: delayedVsTotalBatches,
     isLoading: isDelayedVsTotalBatchesLoading,
+    refetch: refetchDelayedVsTotalBatches
   } = useQuery({
     queryKey: ['delayedVsTotalBatches'],
     queryFn: () => apiService.getDelayedVsTotalBatches(),
@@ -166,6 +169,7 @@ export const useManufacturingData = () => {
   const {
     data: topDelayReasons,
     isLoading: isTopDelayReasonsLoading,
+    refetch: refetchTopDelayReasons
   } = useQuery({
     queryKey: ['topDelayReasons'],
     queryFn: () => apiService.getTopDelayReasons(),
@@ -176,7 +180,13 @@ export const useManufacturingData = () => {
                    isYieldLoading || isTrendsLoading || isReasonsLoading || isDelayShareLoading || isMonthlyDelayLoading || isLineAverageDelayLoading || isLineMonthlyAverageDelayLoading || isDelayedBatchesByLineLoading || isDelayedVsTotalBatchesLoading || isTopDelayFormulasLoading || isLineScrapFactorLoading || isMonthlyDelayRateLoading || isDelayReasonsByLineLoading || isTopDelayReasonsLoading || isProcessingDaysHistogramLoading;
 
   const refetchAll = async () => {
-    await refetchBatch();
+    await Promise.all([
+      refetchBatch(),
+      refetchDelayShare(),
+      refetchMonthlyAverageDelay(),
+      refetchDelayedVsTotalBatches(),
+      refetchTopDelayReasons(),
+    ]);
   };
 
   return {

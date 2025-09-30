@@ -395,10 +395,25 @@ class ApiService {
 
   // API endpoint methods
   async getProcessingDaysHistogram(): Promise<ProcessingDaysHistogramData> {
+    const cacheKey = 'processing-days-histogram';
+    const cached = this.getCached<ProcessingDaysHistogramData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<ProcessingDaysHistogramData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/processing-days-histogram`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching processing days histogram:', error);
       return this.getMockProcessingDaysHistogram();
@@ -406,10 +421,25 @@ class ApiService {
   }
 
   async getDelayShare(): Promise<DelayShareData> {
+    const cacheKey = 'delay-share';
+    const cached = this.getCached<DelayShareData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<DelayShareData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/delay-share`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching delay share:', error);
       return this.getMockDelayShare();
@@ -417,10 +447,25 @@ class ApiService {
   }
 
   async getMonthlyAverageDelay(): Promise<MonthlyAverageDelayData> {
+    const cacheKey = 'monthly-average-delay';
+    const cached = this.getCached<MonthlyAverageDelayData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<MonthlyAverageDelayData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/monthly-average-delay`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching monthly average delay:', error);
       return this.getMockMonthlyAverageDelay();
@@ -428,10 +473,25 @@ class ApiService {
   }
 
   async getLineAverageDelay(): Promise<LineAverageDelayData> {
+    const cacheKey = 'line-average-delay';
+    const cached = this.getCached<LineAverageDelayData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<LineAverageDelayData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/line-average-delay`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching line average delay:', error);
       return this.getMockLineAverageDelay();
@@ -439,10 +499,25 @@ class ApiService {
   }
 
   async getLineMonthlyAverageDelay(): Promise<LineMonthlyAverageDelayData> {
+    const cacheKey = 'line-monthly-average-delay';
+    const cached = this.getCached<LineMonthlyAverageDelayData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<LineMonthlyAverageDelayData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/line-monthly-average-delay`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching line monthly average delay:', error);
       return this.getMockLineMonthlyAverageDelay();
@@ -450,10 +525,25 @@ class ApiService {
   }
 
   async getDelayedBatchesByLine(): Promise<DelayedBatchesByLineData> {
+    const cacheKey = 'delayed-batches-by-line';
+    const cached = this.getCached<DelayedBatchesByLineData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<DelayedBatchesByLineData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/delayed-batches-by-line`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching delayed batches by line:', error);
       return this.getMockDelayedBatchesByLine();
@@ -461,10 +551,25 @@ class ApiService {
   }
 
   async getDelayedVsTotalBatches(): Promise<DelayedVsTotalBatchesData> {
+    const cacheKey = 'delayed-vs-total-batches';
+    const cached = this.getCached<DelayedVsTotalBatchesData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<DelayedVsTotalBatchesData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/delayed-vs-total-batches`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching delayed vs total batches:', error);
       return this.getMockDelayedVsTotalBatches();
@@ -472,10 +577,25 @@ class ApiService {
   }
 
   async getTopDelayFormulas(): Promise<TopDelayFormulasData> {
+    const cacheKey = 'top-delay-formulas';
+    const cached = this.getCached<TopDelayFormulasData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<TopDelayFormulasData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/top-delay-formulas`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching top delay formulas:', error);
       return this.getMockTopDelayFormulas();
@@ -483,10 +603,25 @@ class ApiService {
   }
 
   async getLineScrapFactor(): Promise<LineScrapFactorData> {
+    const cacheKey = 'line-scrap-factor';
+    const cached = this.getCached<LineScrapFactorData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<LineScrapFactorData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/line-scrap-factor`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching line scrap factor:', error);
       return this.getMockLineScrapFactor();
@@ -494,10 +629,25 @@ class ApiService {
   }
 
   async getMonthlyDelayRate(): Promise<MonthlyDelayRateData> {
+    const cacheKey = 'monthly-delay-rate';
+    const cached = this.getCached<MonthlyDelayRateData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<MonthlyDelayRateData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/monthly-delay-rate`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching monthly delay rate:', error);
       return this.getMockMonthlyDelayRate();
@@ -505,10 +655,25 @@ class ApiService {
   }
 
   async getDelayReasonsByLine(): Promise<DelayReasonsByLineData> {
+    const cacheKey = 'delay-reasons-by-line';
+    const cached = this.getCached<DelayReasonsByLineData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<DelayReasonsByLineData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/delay-reasons-by-line`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching delay reasons by line:', error);
       return this.getMockDelayReasonsByLine();
@@ -516,10 +681,25 @@ class ApiService {
   }
 
   async getTopDelayReasons(): Promise<TopDelayReasonsData> {
+    const cacheKey = 'top-delay-reasons';
+    const cached = this.getCached<TopDelayReasonsData>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<TopDelayReasonsData>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
     try {
       const response = await this.fetchWithTimeout(`${API_BASE_URL}/delay-reasons-top10`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
     } catch (error) {
       console.error('Error fetching top delay reasons:', error);
       return this.getMockTopDelayReasons();
