@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { apiService } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -25,7 +26,6 @@ import {
   FileText,
   AlertCircle,
   Loader2,
-  Upload,
   CheckCircle2,
   Maximize2,
   Minimize2
@@ -57,30 +57,22 @@ export function ChatbotWidget () {
     { 
       id: randomId(), 
       role: "assistant", 
-      content: "Hi! I'm your Alarm Analytics Assistant. Upload your CSV data and ask me anything about alarm patterns, trends, or anomalies." 
+      content: "Hi! I'm your Batch Analytics Assistant. Ask me anything about batch prices, processing trends, or data insights." 
     },
   ]);
   const [loading, setLoading] = React.useState(false);
-  const [dataLoaded, setDataLoaded] = React.useState(false);
-  const [uploadProgress, setUploadProgress] = React.useState(false);
   const bottomRef = React.useRef<HTMLDivElement>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [expanded, setExpanded] = React.useState(false);
 
   const examplePrompts = [
-    "Top 10 FORMULA_ID by count of WIP_BATCH_ID",
-    "Top 10 FORMULA_ID by average SCRAP_FACTOR",
-    "Top 10 LINE_NO by total WIP_QTY",
-    "Counts of TRANSACTION_TYPE_NAME",
-    "Top 10 INVENTORY_ITEM_ID by total PLAN_QTY",
-    "Distribution of SCRAP_FACTOR",
-    "Top 5 PLAN_QTY",
-    "Rows with WIP_BATCH_STATUS == 'Closed' sorted by WIP_VALUE desc (show top 10)",
+    "Tell me about the difference in the batch prices top 10",
+    "Show me batch processing trends",
+    "What are the top formulas by WIP value?",
+    "Analyze scrap factors across lines",
+    "Compare batch quantities by line",
+    "Show delayed batches analysis",
   ];
 
-  React.useEffect(() => {
-    checkDataStatus();
-  }, []);
 
   React.useEffect(() => {
     if (open) {
@@ -88,57 +80,12 @@ export function ChatbotWidget () {
     }
   }, [open, messages.length]);
 
-  async function checkDataStatus() {
-    try {
-      const response = await fetch("http://103.18.20.205:8084/api/status");
-      const data = await response.json();
-      setDataLoaded(data.data_loaded);
-    } catch (error) {
-      console.error("Failed to check status:", error);
-    }
-  }
 
-  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setUploadProgress(true);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const response = await fetch("http://103.18.20.205:8084/api/upload-data", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setDataLoaded(true);
-        setMessages(prev => [...prev, {
-          id: randomId(),
-          role: "assistant",
-          content: `✅ Data loaded successfully! ${data.stats.rows} rows with ${data.stats.total_alarms} alarms detected. Ask me anything about your data.`
-        }]);
-      }
-    } catch (error) {
-      setMessages(prev => [...prev, {
-        id: randomId(),
-        role: "assistant",
-        content: "❌ Failed to upload file. Please try again."
-      }]);
-    } finally {
-      setUploadProgress(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  }
 
   async function handleSend(e?: React.FormEvent) {
     e?.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || !dataLoaded) return;
+    if (!trimmed) return;
 
     const userMessage: ChatMessage = {
       id: randomId(),
@@ -162,43 +109,15 @@ export function ChatbotWidget () {
     }]);
 
     try {
-      const response = await fetch("http://103.18.20.205:8084/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: query,
-          include_code: true,
-          include_visualization: true,
-        }),
-      });
-
-      const data = await response.json();
+      const response = await apiService.sendChatbotQuery(query);
       
-      if (data.success && data.answer) {
-        const assistantMessage: ChatMessage = {
-          id: randomId(),
-          role: "assistant",
-          content: data.answer.summary || "Analysis complete. See details below.",
-          data: {
-            summary: data.answer.summary,
-            code: data.answer.code,
-            figure: data.answer.execution?.figure,
-            result: data.answer.execution?.result,
-            error: data.answer.execution?.error,
-            executionTime: data.execution_time
-          }
-        };
+      const assistantMessage: ChatMessage = {
+        id: randomId(),
+        role: "assistant",
+        content: response,
+      };
 
-        setMessages(prev => prev.filter(m => m.id !== typingId).concat(assistantMessage));
-      } else {
-        setMessages(prev => prev.map(m => 
-          m.id === typingId 
-            ? { ...m, content: `❌ ${data.error || "Failed to analyze request"}` }
-            : m
-        ));
-      }
+      setMessages(prev => prev.filter(m => m.id !== typingId).concat(assistantMessage));
     } catch (error) {
       setMessages(prev => prev.map(m => 
         m.id === typingId 
@@ -241,19 +160,10 @@ export function ChatbotWidget () {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="text-sm font-semibold">Alarm Analytics Agent</div>
+                  <div className="text-sm font-semibold">Batch Analytics Agent</div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    {dataLoaded ? (
-                      <>
-                        <CheckCircle2 className="h-3 w-3 text-green-500" />
-                        <span>Data loaded</span>
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="h-3 w-3 text-amber-500" />
-                        <span>No data loaded</span>
-                      </>
-                    )}
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    <span>Ready</span>
                   </div>
                 </div>
               </div>
@@ -282,39 +192,6 @@ export function ChatbotWidget () {
             {/* Messages Area */}
             <ScrollArea className="flex-1">
               <div className="px-4 py-4 space-y-4 overflow-x-auto">
-                {/* Upload Section if no data */}
-                {!dataLoaded && (
-                  <Card className="p-4 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Upload className="h-4 w-4 text-amber-600" />
-                      <span className="text-sm font-medium">Upload CSV Data</span>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".csv"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadProgress}
-                    >
-                      {uploadProgress ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        "Choose CSV File"
-                      )}
-                    </Button>
-                  </Card>
-                )}
-
                 {/* Messages */}
                 {messages.map((msg) => (
                   <div
@@ -334,11 +211,18 @@ export function ChatbotWidget () {
                     >
                       {msg.role === "assistant" && msg.data ? (
                         <AssistantMessage message={msg} />
-                      ) : (
+                      ) : msg.role === "assistant" ? (
                         <div className={cn(
-                          "text-sm",
-                          msg.role === "user" ? "" : "px-4 py-2"
+                          "text-sm px-4 py-2 prose prose-sm dark:prose-invert max-w-none",
+                          "prose-p:my-2 prose-headings:my-3 prose-table:my-3",
+                          "prose-td:border prose-th:border prose-td:p-2 prose-th:p-2"
                         )}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <div className="text-sm">
                           {msg.content}
                         </div>
                       )}
@@ -350,38 +234,36 @@ export function ChatbotWidget () {
             </ScrollArea>
 
             {/* Example Prompts */}
-            {dataLoaded && (
-              <div className="px-3 py-2 border-t bg-muted/30">
-                <ScrollArea className="w-full" orientation="horizontal">
-                  <div className="flex gap-2 pb-1 flex-nowrap w-max touch-pan-x">
-                    {examplePrompts.map((prompt) => (
-                      <Badge
-                        key={prompt}
-                        variant="secondary"
-                        className="cursor-pointer whitespace-nowrap hover:bg-secondary/80 shrink-0"
-                        onClick={() => setInput(prompt)}
-                      >
-                        {prompt}
-                      </Badge>
-                    ))}
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-              </div>
-            )}
+            <div className="px-3 py-2 border-t bg-muted/30">
+              <ScrollArea className="w-full" orientation="horizontal">
+                <div className="flex gap-2 pb-1 flex-nowrap w-max touch-pan-x">
+                  {examplePrompts.map((prompt) => (
+                    <Badge
+                      key={prompt}
+                      variant="secondary"
+                      className="cursor-pointer whitespace-nowrap hover:bg-secondary/80 shrink-0"
+                      onClick={() => setInput(prompt)}
+                    >
+                      {prompt}
+                    </Badge>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </div>
 
             {/* Input */}
             <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={dataLoaded ? "Ask about alarms, trends, patterns..." : "Upload data first"}
+                placeholder="Ask about batch prices, trends, patterns..."
                 className="flex-1"
-                disabled={!dataLoaded || loading}
+                disabled={loading}
               />
               <Button 
                 type="submit" 
-                disabled={!input.trim() || loading || !dataLoaded} 
+                disabled={!input.trim() || loading} 
                 size="icon"
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
               >

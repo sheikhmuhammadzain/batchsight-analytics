@@ -1,5 +1,6 @@
 // API service for batch processing data
 export const API_BASE_URL = 'http://103.18.20.205:8083';
+export const CHATBOT_API_BASE_URL = 'http://103.18.20.205:8084';
 
 // API Response Interfaces
 export interface RootResponse {
@@ -140,24 +141,235 @@ export interface DelayReason {
   count: number;
 }
 
+export interface ChatbotRequest {
+  query: string;
+}
+
+export interface ChatbotResponse {
+  response: string;
+}
+
+// Formula Diff Interfaces
+export interface FormulaItem {
+  FORMULA_ID: number;
+  STD_COST: number;
+  ACT_COST: number;
+  COST_VAR: number;
+  EXCESS_CNT: number;
+  UNCHANGED_CNT: number;
+  UNUSED_CNT: number;
+  CHANGED_CNT: number;
+  BATCHES_TOUCHED: number;
+  'VARIANCE_%': number;
+}
+
+export interface FormulaDiffOverview {
+  status: string;
+  formulas: number;
+  items: FormulaItem[];
+  stacked_counts: {
+    FORMULA_ID: string[];
+    EXCESS_CNT: number[];
+    UNUSED_CNT: number[];
+    CHANGED_CNT: number[];
+    UNCHANGED_CNT: number[];
+  };
+  ai_insights: string;
+}
+
+export interface IngredientDetail {
+  FORMULA_ID: number;
+  INGREDIENT_ID: number;
+  STATUS: string;
+  STD_QTY_SCALED: number;
+  ACT_QTY: number;
+  QTY_VAR: number;
+  STD_UNIT_COST: number;
+  ACT_UNIT_COST_MED: number;
+  STD_COST: number;
+  ACT_COST: number;
+  COST_VAR: number;
+  BATCHES: number;
+}
+
+export interface FormulaDiffFormula {
+  status: string;
+  ingredients: IngredientDetail[];
+  charts: {
+    tornado_cost_var: {
+      INGREDIENT_ID: string[];
+      COST_VAR: number[];
+      STATUS: string[];
+    };
+    slope_qty: {
+      INGREDIENT_ID: string[];
+      STD_QTY_SCALED: number[];
+      ACT_QTY: number[];
+    };
+  };
+  ai_insights: string;
+}
+
+export interface PortfolioTornado {
+  title: string;
+  top_n: number;
+  ingredient_ids: string[];
+  cost_variance: number[];
+  status: string[];
+  std_qty_scaled: number[];
+  act_qty: number[];
+  table: Array<{
+    INGREDIENT_ID: number;
+    STATUS: string;
+    COST_VAR: number;
+    STD_QTY_SCALED: number;
+    ACT_QTY: number;
+  }>;
+}
+
+export interface TopFormulasVariance {
+  title: string;
+  top_n: number;
+  formula_ids: string[];
+  cost_variance: number[];
+  std_cost: number[];
+  act_cost: number[];
+  variance_pct: number[];
+  table: Array<{
+    FORMULA_ID: number;
+    COST_VAR: number;
+    STD_COST: number;
+    ACT_COST: number;
+    'VARIANCE_%': number;
+  }>;
+}
+
+export interface StatusMix {
+  title: string;
+  top_n: number;
+  formula_ids: string[];
+  excess_cnt: number[];
+  unused_cnt: number[];
+  changed_cnt: number[];
+  unchanged_cnt: number[];
+  table: Array<{
+    FORMULA_ID: number;
+    EXCESS_CNT: number;
+    UNUSED_CNT: number;
+    CHANGED_CNT: number;
+    UNCHANGED_CNT: number;
+  }>;
+}
+
+// Simple in-memory cache
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 class ApiService {
-  private async fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 15000): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+  private cache: Map<string, CacheEntry<any>> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private persistentEnabled = true;
+  private readonly PERSIST_PREFIX = 'bs_api_cache_v1:';
+  private lastSource: Map<string, 'memory' | 'local' | 'network'> = new Map();
+
+  enablePersistentCache(enabled: boolean) {
+    this.persistentEnabled = enabled;
+  }
+
+  isPersistentCacheEnabled() {
+    return this.persistentEnabled;
+  }
+
+  private setLastCacheSource(key: string, source: 'memory' | 'local' | 'network') {
+    this.lastSource.set(key, source);
+  }
+
+  getLastCacheSource(key: string): 'memory' | 'local' | 'network' | null {
+    return this.lastSource.get(key) ?? null;
+  }
+
+  private getCached<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
     
+    const isExpired = Date.now() - entry.timestamp > this.CACHE_TTL;
+    if (isExpired) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data as T;
+  }
+
+  private setCache<T>(key: string, data: T): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now()
+    });
+  }
+
+  private getPersistent<T>(key: string): T | null {
+    if (!this.persistentEnabled) return null;
+    try {
+      const raw = localStorage.getItem(this.PERSIST_PREFIX + key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as CacheEntry<T>;
+      const isExpired = Date.now() - parsed.timestamp > this.CACHE_TTL;
+      if (isExpired) {
+        localStorage.removeItem(this.PERSIST_PREFIX + key);
+        return null;
+      }
+      return parsed.data as T;
+    } catch {
+      return null;
+    }
+  }
+
+  private setPersistent<T>(key: string, data: T): void {
+    if (!this.persistentEnabled) return;
+    try {
+      const payload: CacheEntry<T> = { data, timestamp: Date.now() };
+      localStorage.setItem(this.PERSIST_PREFIX + key, JSON.stringify(payload));
+    } catch {
+      // ignore quota or serialization errors
+    }
+  }
+
+  clearPersistentCache(): void {
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(this.PERSIST_PREFIX)) keys.push(k);
+      }
+      keys.forEach((k) => localStorage.removeItem(k));
+    } catch {}
+  }
+
+  clearPersistentCacheEntry(key: string): void {
+    try { localStorage.removeItem(this.PERSIST_PREFIX + key); } catch {}
+  }
+
+  private async fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 15000): Promise<Response> {
+    const useTimeout = typeof timeout === 'number' && timeout > 0;
+    const controller = useTimeout ? new AbortController() : null;
+    const timeoutId = useTimeout ? setTimeout(() => controller!.abort(), timeout) : null;
+
     try {
       const response = await fetch(url, {
         ...options,
-        signal: controller.signal,
+        ...(controller ? { signal: controller.signal } : {}),
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
       });
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       return response;
     } catch (error) {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
 
       // Handle AbortError specifically
       if (error instanceof Error && error.name === 'AbortError') {
@@ -446,6 +658,172 @@ class ApiService {
       console.error('Error fetching delay reasons:', error);
       return this.getMockDelayReasons();
     }
+  }
+
+  async sendChatbotQuery(query: string): Promise<string> {
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/CHATBOT`, {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      }, 0);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // The API returns a plain string response
+      const text = await response.text();
+      // Parse the JSON string to get the actual response
+      return JSON.parse(text);
+    } catch (error) {
+      console.error('Error sending chatbot query:', error);
+      throw error;
+    }
+  }
+
+  // Formula Diff Endpoints
+  async getFormulaDiffOverview(): Promise<FormulaDiffOverview> {
+    const cacheKey = 'formula-diff-overview';
+    const cached = this.getCached<FormulaDiffOverview>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<FormulaDiffOverview>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/formula-diff/overview`, {}, 0);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
+    } catch (error) {
+      console.error('Error fetching formula diff overview:', error);
+      throw error;
+    }
+  }
+
+  async getFormulaDiffFormula(): Promise<FormulaDiffFormula> {
+    const cacheKey = 'formula-diff-formula';
+    const cached = this.getCached<FormulaDiffFormula>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<FormulaDiffFormula>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/formula-diff/formula`, {}, 0);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
+    } catch (error) {
+      console.error('Error fetching formula diff formula:', error);
+      throw error;
+    }
+  }
+
+  async getPortfolioTornado(): Promise<PortfolioTornado> {
+    const cacheKey = 'portfolio-tornado';
+    const cached = this.getCached<PortfolioTornado>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<PortfolioTornado>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/charts/portfolio-tornado`, {}, 0);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
+    } catch (error) {
+      console.error('Error fetching portfolio tornado:', error);
+      throw error;
+    }
+  }
+
+  async getTopFormulasVariance(): Promise<TopFormulasVariance> {
+    const cacheKey = 'top-formulas-variance';
+    const cached = this.getCached<TopFormulasVariance>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<TopFormulasVariance>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/charts/top-formulas-variance`, {}, 0);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
+    } catch (error) {
+      console.error('Error fetching top formulas variance:', error);
+      throw error;
+    }
+  }
+
+  async getStatusMix(): Promise<StatusMix> {
+    const cacheKey = 'status-mix';
+    const cached = this.getCached<StatusMix>(cacheKey);
+    if (cached) { this.setLastCacheSource(cacheKey, 'memory'); return cached; }
+
+    const persisted = this.getPersistent<StatusMix>(cacheKey);
+    if (persisted) {
+      this.setCache(cacheKey, persisted);
+      this.setLastCacheSource(cacheKey, 'local');
+      return persisted;
+    }
+
+    try {
+      const response = await this.fetchWithTimeout(`${CHATBOT_API_BASE_URL}/charts/status-mix`, {}, 0);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      this.setCache(cacheKey, data);
+      this.setPersistent(cacheKey, data);
+      this.setLastCacheSource(cacheKey, 'network');
+      return data;
+    } catch (error) {
+      console.error('Error fetching status mix:', error);
+      throw error;
+    }
+  }
+
+  // Clear cache manually if needed
+  clearCache(): void {
+    this.cache.clear();
+  }
+
+  // Clear specific cache entry
+  clearCacheEntry(key: string): void {
+    this.cache.delete(key);
   }
 
   // Mock data methods

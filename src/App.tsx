@@ -14,6 +14,7 @@ import PerformanceMonthly from "./pages/PerformanceMonthly";
 import PerformanceQuarterly from "./pages/PerformanceQuarterly";
 import Production from "./pages/Production";
 import Schedules from "./pages/Schedules";
+import FormulaAnalysis from "./pages/FormulaAnalysis";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/performance/quarterly" element={<PerformanceQuarterly />} />
               <Route path="/production" element={<Production />} />
               <Route path="/schedules" element={<Schedules />} />
+              <Route path="/formula-analysis" element={<FormulaAnalysis />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

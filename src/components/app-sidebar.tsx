@@ -95,6 +95,14 @@ export function AppSidebar({ variant = "sidebar", ...props }: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/formula-analysis")} tooltip="Formula Analysis">
+                  <NavLink to="/formula-analysis">
+                    <BarChart3 />
+                    <span>Formula Analysis</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith("/trends")} tooltip="Trends">
                   <NavLink to="/trends">
                     <LineChart />
