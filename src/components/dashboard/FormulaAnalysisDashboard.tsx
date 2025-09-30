@@ -194,15 +194,13 @@ export function FormulaAnalysisDashboard() {
         <Card className="col-span-1">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Portfolio Tornado</CardTitle>
+              <CardTitle>Top Ingredients by Absolute Cost Variance</CardTitle>
               {sources.tornado && <Badge variant="outline">Cache: {sources.tornado}</Badge>}
             </div>
-            <CardDescription>Top ingredients by absolute cost variance</CardDescription>
           </CardHeader>
           <CardContent>
             <TornadoChart 
               data={tornadoData}
-              title={tornado.title}
               valueFormatter={(v) => "$" + numberFmt(v)}
               className="w-full"
             />

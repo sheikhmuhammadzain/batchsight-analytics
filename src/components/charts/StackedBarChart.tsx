@@ -32,7 +32,6 @@ export function StackedBarChart({
 }: StackedBarChartProps) {
   return (
     <div className={cn("space-y-4", className)}>
-      {title && <h3 className="text-lg font-semibold">{title}</h3>}
       <ChartContainer config={config} className="h-[400px] w-full">
         <BarChart 
           data={data}

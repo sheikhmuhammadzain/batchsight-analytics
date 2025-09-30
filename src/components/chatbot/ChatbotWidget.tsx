@@ -235,7 +235,7 @@ export function ChatbotWidget () {
 
             {/* Example Prompts */}
             <div className="px-3 py-2 border-t bg-muted/30">
-              <ScrollArea className="w-full" orientation="horizontal">
+              <div className="w-full overflow-x-auto">
                 <div className="flex gap-2 pb-1 flex-nowrap w-max touch-pan-x">
                   {examplePrompts.map((prompt) => (
                     <Badge
@@ -248,8 +248,7 @@ export function ChatbotWidget () {
                     </Badge>
                   ))}
                 </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Input */}
