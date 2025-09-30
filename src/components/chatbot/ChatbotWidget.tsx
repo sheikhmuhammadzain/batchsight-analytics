@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { apiService } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import AILoadingState from "./AILoadingState";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { 
@@ -229,6 +230,13 @@ export function ChatbotWidget () {
                     </div>
                   </div>
                 ))}
+                {loading && (
+                  <div className="flex w-full justify-start px-3 py-2">
+                    <div className="max-w-[85%] rounded-2xl shadow-sm bg-card border p-4">
+                      <AILoadingState />
+                    </div>
+                  </div>
+                )}
                 <div ref={bottomRef} />
               </div>
             </ScrollArea>
