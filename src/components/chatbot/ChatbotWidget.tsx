@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { apiService } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+// @ts-ignore
+import rehypeRaw from "rehype-raw";
 import AILoadingState from "./AILoadingState";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -216,9 +218,13 @@ export function ChatbotWidget () {
                         <div className={cn(
                           "text-sm px-4 py-2 prose prose-sm dark:prose-invert max-w-none",
                           "prose-p:my-2 prose-headings:my-3 prose-table:my-3",
-                          "prose-td:border prose-th:border prose-td:p-2 prose-th:p-2"
+                          "prose-td:border prose-th:border prose-td:p-2 prose-th:p-2",
+                          "prose-ul:my-2 prose-li:my-1 prose-h4:font-semibold prose-h4:text-base"
                         )}>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]} 
+                            rehypePlugins={[rehypeRaw]}
+                          >
                             {msg.content}
                           </ReactMarkdown>
                         </div>
@@ -368,7 +374,10 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
             <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5" />
             <div className="text-sm text-foreground/90 leading-relaxed w-full">
               <div className="prose prose-sm dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]} 
+                  rehypePlugins={[rehypeRaw]}
+                >
                   {data.summary}
                 </ReactMarkdown>
               </div>
