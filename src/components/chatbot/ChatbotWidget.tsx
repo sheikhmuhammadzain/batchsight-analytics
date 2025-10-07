@@ -67,7 +67,6 @@ export function ChatbotWidget () {
   const [expanded, setExpanded] = React.useState(false);
 
   const examplePrompts = [
-    "Tell me about the difference in the batch prices top 10",
     "Show me batch processing trends",
     "What are the top formulas by WIP value?",
     "Analyze scrap factors across lines",
