@@ -13,8 +13,6 @@ import { cn } from "@/lib/utils";
 import { apiService } from "@/services/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-// @ts-ignore
-import rehypeRaw from "rehype-raw";
 import AILoadingState from "./AILoadingState";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -223,7 +221,6 @@ export function ChatbotWidget () {
                         )}>
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]} 
-                            rehypePlugins={[rehypeRaw]}
                           >
                             {msg.content}
                           </ReactMarkdown>
@@ -376,7 +373,6 @@ function AssistantMessage({ message }: { message: ChatMessage }) {
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]} 
-                  rehypePlugins={[rehypeRaw]}
                 >
                   {data.summary}
                 </ReactMarkdown>
