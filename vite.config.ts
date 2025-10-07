@@ -29,4 +29,9 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     include: ["rehype-raw"],
   },
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
 }));
